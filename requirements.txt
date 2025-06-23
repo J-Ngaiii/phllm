@@ -1,0 +1,25 @@
+# Data Science Libraries
+numpy
+pandas
+scikit-learn
+
+# Visualization Libraries
+matplotlib
+seaborn
+umap-learn
+
+# Deep Learning Libraries
+torch
+datasets
+transformers
+
+# Bio Libraries
+Biopython
+
+# Misc
+tqdm
+
+# ProkBERT
+git+https://github.com/nbrg-ppcu/prokbert.git
+
+# Evo-2
