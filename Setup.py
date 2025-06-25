@@ -5,7 +5,7 @@ setup(
     version="0.1.0",
     description="Pipeline for genomic language model embeddings, processing and utilization in predicting phage-host interactions",
     author="Jonathan Ngai",
-    packages=find_packages(exclude=["data*"]),
+    packages=find_packages(),
     install_requires=[
         "numpy",
         "pandas",

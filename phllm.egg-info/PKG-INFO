@@ -1,0 +1,29 @@
+Metadata-Version: 2.4
+Name: phllm
+Version: 0.1.0
+Summary: Pipeline for genomic language model embeddings, processing and utilization in predicting phage-host interactions
+Author: Jonathan Ngai
+Requires-Python: >=3.11
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: scikit-learn
+Requires-Dist: torch
+Requires-Dist: pyarrow
+Requires-Dist: datasets
+Requires-Dist: transformers
+Requires-Dist: matplotlib
+Requires-Dist: seaborn
+Requires-Dist: umap-learn
+Requires-Dist: tqdm
+Requires-Dist: biopython
+Requires-Dist: einops
+Requires-Dist: packaging
+Requires-Dist: pre-commit
+Requires-Dist: rich
+Requires-Dist: ruff
+Requires-Dist: setuptools
+Requires-Dist: wheel
+Dynamic: author
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
