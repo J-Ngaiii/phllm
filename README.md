@@ -1,4 +1,5 @@
-# Phage-Host Interaction 
+# Phage-Host Interaction Large Language Model Embedding Extraction
+This repo contains code to flow genome sequences into genomic language models (gLMs) and extract their embeddings into numpy arrays. There is automatic handling to split inputted genome sequences into lengths compliant with context windows.
 
 # Setup
 - Create conda environment in python 3.11
