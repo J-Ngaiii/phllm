@@ -50,6 +50,7 @@ def load_fna(
     filt = None,
     debug = False,
     pad_key = False,
+    plots = False, 
     n_subdivision = 4000
     ) -> Dict[str, np.ndarray]:
     """
@@ -75,81 +76,81 @@ def load_fna(
     strains = {}
 
     if seq_report:
-      seq_num_list = []
-      num_base_pairs = []
-      max_num_base_pairs = 0
-      for file_path in strain_dir.glob('*' + file_type):
-          identifier = file_path.stem  # filename without extension
-          print('=============', 'Parsing: ', identifier, '=============')
-          seq_list = load_fna_seq(file_path, retain_seq_obj)
-          seq_num_list.append(len(seq_list))
-          print(f'{identifier} Num Sequences: {len(seq_list)}')
+        seq_num_list = []
+        num_base_pairs = []
+        max_num_base_pairs = 0
+        for file_path in strain_dir.glob('*' + file_type):
+            identifier = file_path.stem  # filename without extension
+            print('=============', 'Parsing: ', identifier, '=============')
+            seq_list = load_fna_seq(file_path, retain_seq_obj)
+            seq_num_list.append(len(seq_list))
+            print(f'{identifier} Num Sequences: {len(seq_list)}')
 
-          n_base_pairs = sum([len(seq) for seq in seq_list])
-          num_base_pairs.append(n_base_pairs)
-          print(f'{identifier} Num Base Pairs: {n_base_pairs}')
+            n_base_pairs = sum([len(seq) for seq in seq_list])
+            num_base_pairs.append(n_base_pairs)
+            print(f'{identifier} Num Base Pairs: {n_base_pairs}')
 
-          if n_base_pairs > max_num_base_pairs:
-            max_num_base_pairs = n_base_pairs
-          print('\n')
+            if n_base_pairs > max_num_base_pairs:
+                max_num_base_pairs = n_base_pairs
+            print('\n')
 
-          strains[identifier] = seq_list
+            strains[identifier] = seq_list
 
-      print(f"Loaded {len(strains)} {strn_or_phg}s from {strain_dir}")
-      print(f"Total number of sequences processed: {sum(seq_num_list)}")
-      print(f"Total number of base pairs encountered: {sum(num_base_pairs)}")
-      print(f"Maximum length sequence: {max_num_base_pairs}")
+        print(f"Loaded {len(strains)} {strn_or_phg}s from {strain_dir}")
+        print(f"Total number of sequences processed: {sum(seq_num_list)}")
+        print(f"Total number of base pairs encountered: {sum(num_base_pairs)}")
+        print(f"Maximum length sequence: {max_num_base_pairs}")
 
-      plt.hist(num_base_pairs)
-      plt.title("Distribution of Sequence Lengths")
-      plt.xlabel("Sequence Length")
-      plt.ylabel("Frequency")
-      plt.show()
+        if plots:
+            plt.hist(num_base_pairs)
+            plt.title("Distribution of Sequence Lengths")
+            plt.xlabel("Sequence Length")
+            plt.ylabel("Frequency")
+            plt.show()
 
-      if debug == 'seq_num_list':
-          print(f"Returning 'seq_num_list'")
-          return seq_num_list
-      elif debug == 'num_base_pairs':
-          print(f"Returning 'num_base_pairs'")
-          return num_base_pairs
+        if debug == 'seq_num_list':
+            print(f"Returning 'seq_num_list'")
+            return seq_num_list
+        elif debug == 'num_base_pairs':
+            print(f"Returning 'num_base_pairs'")
+            return num_base_pairs
 
-      if pad_key:
-          max_subdivisions = np.ceil(max_num_base_pairs / n_subdivision)
-          num_subdivision = np.ceil(np.array(num_base_pairs) / n_subdivision)
-          num_pads = max_num_base_pairs - num_subdivision
-          return num_subdivision, num_pads
-
+        if pad_key:
+            max_subdivisions = np.ceil(max_num_base_pairs / n_subdivision)
+            num_subdivision = np.ceil(np.array(num_base_pairs) / n_subdivision)
+            num_pads = max_num_base_pairs - num_subdivision
+            return num_subdivision, num_pads
     else:
-      seq_num_list = []
-      num_base_pairs = []
-      max_num_base_pairs = 0
-      for file_path in strain_dir.glob('*' + file_type):
-          identifier = file_path.stem  # filename without extension
-          seq_list = load_fna_seq(file_path, retain_seq_obj, filt)
-          seq_num_list.append(len(seq_list))
+        seq_num_list = []
+        num_base_pairs = []
+        max_num_base_pairs = 0
+        for file_path in strain_dir.glob('*' + file_type):
+            identifier = file_path.stem  # filename without extension
+            seq_list = load_fna_seq(file_path, retain_seq_obj, filt)
+            seq_num_list.append(len(seq_list))
 
-          n_base_pairs = sum([len(seq) for seq in seq_list])
-          num_base_pairs.append(n_base_pairs)
+            n_base_pairs = sum([len(seq) for seq in seq_list])
+            num_base_pairs.append(n_base_pairs)
 
-          if n_base_pairs > max_num_base_pairs:
-            max_num_base_pairs = n_base_pairs
+            if n_base_pairs > max_num_base_pairs:
+                max_num_base_pairs = n_base_pairs
 
-          strains[identifier] = seq_list
+            strains[identifier] = seq_list
 
-      if debug == 'seq_num_list':
-          print(f"Returning 'seq_num_list'")
-          return seq_num_list
-      elif debug == 'num_base_pairs':
-          print(f"Returning 'num_base_pairs'")
-          return num_base_pairs
+        if debug == 'seq_num_list':
+            print(f"Returning 'seq_num_list'")
+            return seq_num_list
+        elif debug == 'num_base_pairs':
+            print(f"Returning 'num_base_pairs'")
+            return num_base_pairs
 
-      if pad_key:
-          max_subdivisions = np.ceil(max_num_base_pairs / n_subdivision)
-          num_subdivision = np.ceil(np.array(num_base_pairs) / n_subdivision)
-          num_pads = max_subdivisions - num_subdivision
-          return num_subdivision, num_pads
+        if pad_key:
+            max_subdivisions = np.ceil(max_num_base_pairs / n_subdivision)
+            num_subdivision = np.ceil(np.array(num_base_pairs) / n_subdivision)
+            num_pads = max_subdivisions - num_subdivision
+            return num_subdivision, num_pads
 
-      print(f"Loaded {len(strains)} {strn_or_phg}s from {strain_dir}")
+        print(f"Loaded {len(strains)} {strn_or_phg}s from {strain_dir}")
 
     return strains
 

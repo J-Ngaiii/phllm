@@ -84,7 +84,10 @@ conda activate {args.environment} 2>&1 || {{
 
 python3 -c "
 import sys
-sys.path.append('{os.path.dirname(os.path.abspath(__file__))}')
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'phllm')))
+phllm_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'phllm'))
+print('path: ', phllm_path)
 from datasets import Dataset
 from transformers import TrainingArguments, Trainer
 
@@ -110,24 +113,20 @@ tokenizer = get_model(llm=LLM, rv='tokenizer')
 model = get_model(llm=LLM, rv='model')
 
 def tokenize_func(examples, max_length=CONTEXT_WINDOW):
-    # batch = examples["base_pairs"]
-    # if isinstance(batch[0], list):
-    #     batch = [item for sublist in batch for item in sublist]
-
     return tokenizer(
-        examples["base_pairs"],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
+        examples['base_pairs'],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
         padding=True,
         truncation=True,
         max_length=max_length,
-        return_tensors="pt"# Set the maximum sequence length if needed
+        return_tensors='pt'
     )
 
 # Chunking and Extracting Embeddings
 estrain_n_select, estrain_pads = complete_n_select(ecoli_strains, CONTEXT_WINDOW)
 ephage_n_select, ephage_pads = complete_n_select(ecoli_phages, CONTEXT_WINDOW)
 
-estrain_embed = extract_embeddings(estrain_n_select, 4000, tokenize_func, model)
-ephage_embed = extract_embeddings(ephage_n_select, 4000, tokenize_func, model)
+estrain_embed = extract_embeddings(estrain_n_select, CONTEXT_WINDOW, tokenize_func, model)
+ephage_embed = extract_embeddings(ephage_n_select, CONTEXT_WINDOW, tokenize_func, model)
 
 # Saving Embeddings to Directory
 save_to_dir(STRAIN_OUTPUT, embeddings=estrain_embed, pads=estrain_pads, name=BACTERIA, strn_or_phage='strain')
@@ -184,7 +183,7 @@ def main():
     # Check which stages are already complete
     print("Checking for completed stages...")
     conf = pipe_config(args=args)
-    stage_keys= conf.get_completion_markers()
+    stage_keys = conf.get_completion_markers()
     completed_stages = []
     for key in stage_keys:
         if conf.check_stage_completion(key):
@@ -220,8 +219,6 @@ def main():
     job_ids = {}
     
     print("Submitting jobs...")
-    
-    stage_names = conf.get_stage_names()
     
     # Submit starting stage
     # Change back to original directory

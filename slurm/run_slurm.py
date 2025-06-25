@@ -11,11 +11,11 @@ def main():
     # =============================================
     # YOUR PATHS - EDIT THESE
     # =============================================
-    input_strain = ""
-    input_phage = ""
-    output_strain = ""
-    output_phage = ""
-    output_dir = ""
+    input_strain = "/global/home/users/jonathanngai/main/phllm/data/raw/ecoli/strains"
+    input_phage = "/global/home/users/jonathanngai/main/phllm/data/raw/ecoli/phages"
+    output_strain = "/global/home/users/jonathanngai/main/phllm/data/embeddings/ecoli/strains"
+    output_phage = "/global/home/users/jonathanngai/main/phllm/data/embeddings/ecoli/phages"
+    output_dir = "/global/home/users/jonathanngai/main/phllm/data/outputs/ecoli"
     
     # =============================================
     # SLURM CONFIGURATION

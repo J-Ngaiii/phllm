@@ -14,6 +14,7 @@ def main():
     CONTEXT_WINDOW = 4000
     BACTERIA = 'ecoli'
     ECOLI_STRAINS, ECOLI_PHAGES, ECOLI_STRAIN_EMBEDDINGS, ECOLI_PHAGE_EMBEDDINGS = get_paths(bacteria=BACTERIA)
+    EARLY_EXIT = True
     
     # Pulling genomes into dictionaries to load into model
     ecoli_strains = rt_dicts(path=ECOLI_STRAINS, seq_report=True)
@@ -23,7 +24,11 @@ def main():
     ecoli_phages = rt_dicts(path=ECOLI_PHAGES, strn_or_phg='phage', seq_report=True)
     num_ecoli_phages = len(ecoli_phages)
     ecoli_phages_subdivisions, ecoli_phages_pads = rt_dicts(path=ECOLI_PHAGES, strn_or_phg='phage', pad_key=True)
-
+    
+    if EARLY_EXIT:
+        print("Initiating early exit")
+        return
+    
     # Setting up model
     tokenizer = get_model(llm=LLM, rv='tokenizer')
     model = get_model(llm=LLM, rv='model')
@@ -45,9 +50,9 @@ def main():
     estrain_n_select, estrain_pads = complete_n_select(ecoli_strains, CONTEXT_WINDOW)
     ephage_n_select, ephage_pads = complete_n_select(ecoli_phages, CONTEXT_WINDOW)
 
-    estrain_embed = extract_embeddings(estrain_n_select, 4000, tokenize_func, model)
+    estrain_embed = extract_embeddings(estrain_n_select, CONTEXT_WINDOW, tokenize_func, model)
     print(estrain_embed.shape)
-    ephage_embed = extract_embeddings(ephage_n_select, 4000, tokenize_func, model)
+    ephage_embed = extract_embeddings(ephage_n_select, CONTEXT_WINDOW, tokenize_func, model)
     print(ephage_embed.shape)
 
     # Saving Embeddings to Directory
