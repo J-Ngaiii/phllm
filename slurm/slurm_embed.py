@@ -166,10 +166,6 @@ def main():
     parser.add_argument('--environment', default='phage_modeling', help='Conda environment name (default: phage_modeling).')
     parser.add_argument('--dry_run', action='store_true', help='Create scripts but do not submit jobs.')
     
-    # NEW: Resume capability
-    parser.add_argument('--start_from_stage', type=int, default=1, choices=[1, 2, 3, 4, 5], 
-                       help='Stage to start from (default: 1). Use this to resume from a specific stage.')
-    
     args = parser.parse_args()
     
     # Create timestamped run directory
