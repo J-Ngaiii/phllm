@@ -100,8 +100,10 @@ import os
 # Setting Variables
 LLM = {args.llm}
 CONTEXT_WINDOW = {args.context_window}
-STRAIN_INPUT, PHAGE_INPUT = {args.input_strain}, {args.input_phage}
-STRAIN_OUTPUT, PHAGE_OUTPUT = {args.output_strain}, {args.output_phage}
+STRAIN_INPUT = {args.input_strain}
+PHAGE_INPUT = {args.input_phage}
+STRAIN_OUTPUT = {args.output_strain}
+PHAGE_OUTPUT = {args.output_phage}
 BACTERIA = {args.name_bact}
 
 # Pulling genomes into dictionaries to load into model
@@ -184,18 +186,6 @@ def main():
     print("Checking for completed stages...")
     conf = pipe_config(args=args)
     stage_keys = conf.get_completion_markers()
-    completed_stages = []
-    for key in stage_keys:
-        if conf.check_stage_completion(key):
-            completed_stages.append(key)
-    
-    if completed_stages:
-        suggested_start = max(completed_stages) + 1
-        if suggested_start <= 5:
-            print(f"💡 Suggestion: You could start from stage {suggested_start} using --start_from_stage {suggested_start}")
-            if args.start_from_stage == 1 and suggested_start > 1:
-                print(f"⚠️  Warning: Starting from stage 1 will resubmit completed stages (wastes compute time)")
-                print(f"   Consider using: --start_from_stage {suggested_start}")
     print()
     
     # Create all scripts
@@ -226,7 +216,6 @@ def main():
     
     print(f"\n=== Job Submission Summary ===")
     print(f"Run directory: {run_dir_abs}")
-    print(f"Stages submitted: {len(completed_stages)}-5")
     print("Monitor with: squeue -u $USER")
     print("View logs: tail -f logs/stage*_*.out")
     print("\n🎯 Key change: Stage 5 now includes BOTH k-mer generation AND modeling")
