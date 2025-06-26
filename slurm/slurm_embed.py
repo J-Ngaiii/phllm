@@ -85,9 +85,6 @@ conda activate {args.environment} 2>&1 || {{
 python3 -c "
 import sys
 import os
-phllm_dir = os.path.abspath(os.path.join(current_dir, '..', 'phllm'))
-sys.path.append(phllm_dir)
-print('phllm directory: ', phllm_dir)
 from datasets import Dataset
 from transformers import TrainingArguments, Trainer
 
