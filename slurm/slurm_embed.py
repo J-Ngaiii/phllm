@@ -177,7 +177,8 @@ def main():
     print(f"=== SLURM Workflow Submission (1 Stage) ===")
     print(f"Run directory: {run_dir}")
     print(f"Output directory: {args.output}")
-    print(f"Starting from stage: {args.start_from_stage}")
+    print(f"Output Strain directory: {args.output_strain}")
+    print(f"Output Phage directory: {args.output_phage}")
     print(f"Account: {args.account}, Environment: {args.environment}")
     print()
     
@@ -217,7 +218,6 @@ def main():
     print(f"Run directory: {run_dir_abs}")
     print("Monitor with: squeue -u $USER")
     print("View logs: tail -f logs/stage*_*.out")
-    print("\n🎯 Key change: Stage 5 now includes BOTH k-mer generation AND modeling")
     print("Expected total runtime: 2-3 hours (one full pipe)")
 
 if __name__ == "__main__":
