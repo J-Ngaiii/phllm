@@ -23,7 +23,7 @@ def main():
     account = "ac_mak"
     partition = "lr7"                    # SLURM partition 
     qos = "lr_normal"                    # SLURM QOS
-    environment = "phage_modeling"       # Conda environment name
+    environment = "env_1"       # Conda environment name
 
     
     # =============================================
