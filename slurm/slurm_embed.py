@@ -85,8 +85,8 @@ conda activate {args.environment} 2>&1 || {{
 python3 -c "
 import sys
 import os
-phllm_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'phllm'))
-sys.path.append(phllm_path)
+base_dir = os.path.abspath(os.path.join(os.getcwd(), '..'))  # One directory above slurm
+sys.path.insert(0, base_dir)
 print('path: ', phllm_path)
 from datasets import Dataset
 from transformers import TrainingArguments, Trainer
