@@ -66,7 +66,7 @@ def create_full_pipe(args, run_dir):
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --gres=gpu:H100:1
+#SBATCH --gres={args.gpu}
 #SBATCH --mem=80G
 #SBATCH --time=6:00:00
 #SBATCH --output={run_dir}/logs/pipe_%j.out
@@ -90,6 +90,8 @@ import torch
 print('CUDA available:', torch.cuda.is_available())
 print('Number of GPUs:', torch.cuda.device_count())
 "
+
+python -c "import torch; print(torch.version.cuda)"
 
 python3 -c "
 import sys
@@ -167,9 +169,10 @@ def main():
     
     # SLURM-specific arguments
     parser.add_argument('--account', default='ac_mak', help='SLURM account (default: ac_mak).')
-    parser.add_argument('--partition', default='lr7', help='SLURM partition (default: lr7).')
-    parser.add_argument('--qos', default='lr_normal', help='SLURM QOS (default: lr_normal).')
+    parser.add_argument('--partition', default='es1', help='SLURM partition (default: es1).')
+    parser.add_argument('--qos', default='es_normal', help='SLURM QOS (default: es_normal).')
     parser.add_argument('--environment', default='phage_modeling', help='Conda environment name (default: phage_modeling).')
+    parser.add_argument('--gpu', help='GPU to be used for the job.')
     parser.add_argument('--dry_run', action='store_true', help='Create scripts but do not submit jobs.')
     
     args = parser.parse_args()

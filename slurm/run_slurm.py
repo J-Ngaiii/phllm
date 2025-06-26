@@ -21,9 +21,10 @@ def main():
     # SLURM CONFIGURATION
     # =============================================
     account = "ac_mak"
-    partition = "lr7"                    # SLURM partition 
-    qos = "lr_normal"                    # SLURM QOS
+    partition = "es1"                    # SLURM partition 
+    qos = "es_normal"                    # SLURM QOS
     environment = "env_1"       # Conda environment name
+    gpu = "gpu:H100:1"
 
     
     # =============================================
@@ -61,6 +62,7 @@ def main():
         "--partition", partition,
         "--qos", qos,
         "--environment", environment,
+        "--gpu", gpu
     ]
     
     if dry_run:
