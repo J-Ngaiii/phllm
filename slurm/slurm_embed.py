@@ -85,8 +85,6 @@ conda activate {args.environment} 2>&1 || {{
 python3 -c "
 import sys
 import os
-current_dir = os.path.dirname(os.path.abspath(__file__))  # directory containing the script
-print('current directory: ', current_dir)
 phllm_dir = os.path.abspath(os.path.join(current_dir, '..', 'phllm'))
 sys.path.append(phllm_dir)
 print('phllm directory: ', phllm_dir)
