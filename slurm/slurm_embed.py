@@ -60,13 +60,13 @@ def create_full_pipe(args, run_dir):
     """Stage 1: extracting phage and strain data into a tokenized huggingface dataset"""
     script_content = f"""#!/bin/bash
 #SBATCH --job-name=full_pipe
-#SBATCH --account={args.account}
-#SBATCH --partition={args.partition}
-#SBATCH --qos={args.qos}
+#SBATCH --account='{args.account}'
+#SBATCH --partition='{args.partition}'
+#SBATCH --qos='{args.qos}'
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --gres={args.gpu}
+#SBATCH --gres='{args.gpu}'
 #SBATCH --mem=80G
 #SBATCH --time=6:00:00
 #SBATCH --output={run_dir}/logs/pipe_%j.out
@@ -75,10 +75,7 @@ def create_full_pipe(args, run_dir):
 echo "=== Stage 1: Tokenizing Data ==="
 echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
 
-echo "=== Enviornment Setup (lrc pytorch has cuda, local env has required modules) ==="
-module purge
-module load ml/pytorch/2.3.1-py3.11.7
-
+echo "=== Enviornment Setup ({args.environment}) ==="
 module load anaconda3
 conda activate {args.environment} 2>&1 || {{
     echo "Direct activation failed, trying with conda init..."
