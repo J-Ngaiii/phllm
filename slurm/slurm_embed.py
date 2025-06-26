@@ -97,13 +97,13 @@ from phllm.config.directory_paths import get_paths
 from phllm.extract.chunkers import complete_n_select, extract_embeddings
 
 # Setting Variables
-LLM = {args.llm}
+LLM = '{args.llm}'
 CONTEXT_WINDOW = {args.context_window}
-STRAIN_INPUT = {args.input_strain}
-PHAGE_INPUT = {args.input_phage}
-STRAIN_OUTPUT = {args.output_strain}
-PHAGE_OUTPUT = {args.output_phage}
-BACTERIA = {args.name_bact}
+STRAIN_INPUT = '{args.input_strain}'
+PHAGE_INPUT = '{args.input_phage}'
+STRAIN_OUTPUT = '{args.output_strain}'
+PHAGE_OUTPUT = '{args.output_phage}'
+BACTERIA = '{args.name_bact}'
 
 # Pulling genomes into dictionaries to load into model
 ecoli_strains = rt_dicts(path=STRAIN_INPUT, seq_report=True)
