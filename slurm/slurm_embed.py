@@ -75,6 +75,10 @@ def create_full_pipe(args, run_dir):
 echo "=== Stage 1: Tokenizing Data ==="
 echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
 
+echo "=== Enviornment Setup (lrc pytorch has cuda, local env has required modules) ==="
+module purge
+module load ml/pytorch/2.3.1-py3.11.7
+
 module load anaconda3
 conda activate {args.environment} 2>&1 || {{
     echo "Direct activation failed, trying with conda init..."
