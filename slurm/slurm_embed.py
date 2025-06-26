@@ -65,8 +65,9 @@ def create_full_pipe(args, run_dir):
 #SBATCH --qos={args.qos}
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
-#SBATCH --mem=60G
+#SBATCH --cpus-per-task=20
+#SBATCH --gres=gpu:H100:1
+#SBATCH --mem=80G
 #SBATCH --time=6:00:00
 #SBATCH --output={run_dir}/logs/pipe_%j.out
 #SBATCH --error={run_dir}/logs/pipe_%j.out
@@ -81,6 +82,14 @@ conda activate {args.environment} 2>&1 || {{
     source ~/.bashrc >/dev/null 2>&1
     conda activate {args.environment}
 }}
+
+echo "=== GPU info ==="
+nvidia-smi || echo "No GPUs found or NVIDIA drivers missing"
+python3 -c "
+import torch
+print('CUDA available:', torch.cuda.is_available())
+print('Number of GPUs:', torch.cuda.device_count())
+"
 
 python3 -c "
 import sys
