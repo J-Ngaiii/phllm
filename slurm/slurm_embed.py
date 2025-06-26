@@ -95,7 +95,6 @@ from phllm.utils.helpers import rt_dicts, save_to_dir
 from phllm.config.model_factory import get_model
 from phllm.config.directory_paths import get_paths
 from phllm.extract.chunkers import complete_n_select, extract_embeddings
-import os
 
 # Setting Variables
 LLM = {args.llm}
@@ -154,11 +153,11 @@ def main():
     parser.add_argument('--output_strain', required=True, help='Output strain npz(compressed numpy array) path.')
     parser.add_argument('--output_phage', help='Output phage npz(compressed numpy array) path.')
     parser.add_argument('--output', help='General output directory path.')
-    parser.add_argument('--name_bact', help='Name of bacteria.')
 
     # Configs
     parser.add_argument('--llm', default='prokbert', help='Llm model to use for generating embeddings.')
     parser.add_argument('--context_window',type=int, default=4000, help='Context window for the Embedding model.')
+    parser.add_argument('--name_bact', help='Name of bacteria.')
     
     # SLURM-specific arguments
     parser.add_argument('--account', default='ac_mak', help='SLURM account (default: ac_mak).')

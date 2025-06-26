@@ -31,8 +31,9 @@ def main():
     # =============================================
     
     # Configs
-    llm = 'prokbert'
-    context_window = 4000
+    llm = "prokbert"
+    context_window = "4000"
+    name_bact = "ecoli"
     
     # Debug options
     dry_run = False                     # Create scripts but don't submit jobs
@@ -49,6 +50,11 @@ def main():
         "--output_strain", output_strain,
         "--output_phage", output_phage,
         "--output", output_dir,
+
+        # Configs
+        "--llm", llm,
+        "--context_window", context_window,
+        "--name_bact", name_bact,
         
         # SLURM configuration  
         "--account", account,
