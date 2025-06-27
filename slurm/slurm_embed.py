@@ -79,12 +79,11 @@ def create_full_pipe(args, run_dir):
 #SBATCH --qos={args.qos}
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=2
 #SBATCH --gres={args.gpu}
-#SBATCH --mem=80G
 #SBATCH --time=6:00:00
 #SBATCH --output={run_dir}/logs/pipe_%j.out
-#SBATCH --error={run_dir}/logs/pipe_%j.out
+#SBATCH --error={run_dir}/logs/pipe_%j.err
 
 echo "=== Stage 1: Full Pipe ==="
 echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
@@ -97,6 +96,13 @@ echo "Successfully loaded cluster pytorhc enviornment"
 cd {args.root_dir}
 pip install -e .
 echo "Successfully installed local package"
+
+nvidia-smi || echo "No GPUs found"
+python3 -c "
+import torch
+print('CUDA available:', torch.cuda.is_available())
+print('Number of GPUs:', torch.cuda.device_count())
+"
 
 python3 -c "
 from phllm.pipeline.main_slurm import main_slurm
