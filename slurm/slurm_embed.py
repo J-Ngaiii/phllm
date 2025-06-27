@@ -136,7 +136,8 @@ def main():
     parser.add_argument('--account', default='ac_mak', help='SLURM account (default: ac_mak).')
     parser.add_argument('--partition', default='es1', help='SLURM partition (default: es1).')
     parser.add_argument('--qos', default='es_normal', help='SLURM QOS (default: es_normal).')
-    parser.add_argument('--environment', default='phage_modeling', help='Conda environment name (default: phage_modeling).')
+    # parser.add_argument('--environment', default='phage_modeling', help='Conda environment name (default: env_1).')
+    parser.add_argument('--root_dir', default='/global/home/users/jonathanngai/main/phllm', help='Root directory of local package with necessary scripts for extracting embeddings.')
     parser.add_argument('--gpu', help='GPU to be used for the job.')
     parser.add_argument('--dry_run', action='store_true', help='Create scripts but do not submit jobs.')
     

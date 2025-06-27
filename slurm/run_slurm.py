@@ -87,7 +87,7 @@ def main():
     qos:               {qos}
     GPU:               {gpu}
 
-    Submitting test workflow with command:
+    Submitting workflow with command:
     {command}
     """.format(
         llm=llm,
