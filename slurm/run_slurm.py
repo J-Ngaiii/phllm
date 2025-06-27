@@ -80,8 +80,6 @@ def main():
     LLM Model:         {llm}
     Context Window:    {context}
     Bacteria:          {bact}
-    Output directory:  {output_dir}
-    Project root path: {root_dir}
     SLURM account:     {account}
     Partition:         {partition}
     qos:               {qos}
@@ -93,8 +91,6 @@ def main():
         llm=llm,
         context=context_window,
         bact=name_bact, 
-        output_dir=output_dir,
-        root_dir=root_dir,
         account=account,
         partition=partition,
         qos=qos, 

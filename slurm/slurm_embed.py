@@ -91,6 +91,8 @@ echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
 
 echo "=== Initializing Environment ==="
 module load ml/pytorch
+pip install --upgrade --user accelerate
+pip install --user transformers[torch]
 echo "Successfully loaded cluster pytorhc enviornment"
 cd {args.root_dir}
 pip install -e .
@@ -154,11 +156,11 @@ def main():
     
     print(f"=== SLURM Workflow Submission (1 Stage) ===")
     print(f"Run directory: {run_dir}")
+    print(f"Local package root directory: {args.root_dir}")
     print(f"Output directory: {args.output}")
     print(f"Output Strain directory: {args.output_strain}")
     print(f"Output Phage directory: {args.output_phage}")
     print(f"Account: {args.account}")
-    print(f"Local package root directory: {args.root_dir}")
     print()
     
     # Check which stages are already complete
