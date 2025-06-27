@@ -127,6 +127,11 @@ def extract_embeddings(
   prev_time = time.time()
   start_time = prev_time
 
+  # Setup Cuda
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  model.to(device)
+  print(f"Model is on device: {next(model.parameters()).device}")
+
   for i in range(arr.shape[1]):
     curr = arr[:, i]
     assert all([isinstance(seq, str) for seq in curr]), f"Not all elements in inputted array are type str."
@@ -134,6 +139,8 @@ def extract_embeddings(
     # THIS PART IS SPECIFIC TO ProkBERT
     ds = Dataset.from_dict({"base_pairs": curr})
     tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
+
+    
 
     training_args = TrainingArguments(
     output_dir=out_path,  # Output directory
@@ -150,7 +157,7 @@ def extract_embeddings(
     )
     Y_hat = trainer.predict(tokenized)
     last_hidden_states = Y_hat.predictions[0]
-    representations = last_hidden_states.mean(axis=1) #NOTE:
+    representations = last_hidden_states.mean(axis=1) #NOTE: we perform mean pooling across tokens
     max_embedding_dim = max(max_embedding_dim, representations.shape[1])
     embeddings.append(representations)
 

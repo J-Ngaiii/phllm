@@ -99,11 +99,16 @@ import sys
 import os
 from datasets import Dataset
 from transformers import TrainingArguments, Trainer
+import torch
 
 from phllm.utils.helpers import rt_dicts, save_to_dir
 from phllm.config.model_factory import get_model
 from phllm.config.directory_paths import get_paths
 from phllm.extract.chunkers import complete_n_select, extract_embeddings
+
+# Initializing Cuda
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+print('Using device: ', device)
 
 # Setting Variables
 LLM = '{args.llm}'

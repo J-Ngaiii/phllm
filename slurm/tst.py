@@ -85,6 +85,7 @@ print(test_num * 10)
 "
 
 touch {args.output}/stage1_complete.txt
+
 """
     path = os.path.join(run_dir, "test1.sh")
     with open(path, 'w') as f:
@@ -124,8 +125,11 @@ print('Number of GPUs:', torch.cuda.device_count())
 
 python3 -c "
 import torch
-a = torch.randn(10000, 10000).cuda()
-b = torch.randn(10000, 10000).cuda()
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+print('Using device: ', device)
+a = torch.randn(10000, 10000, device=device)
+b = torch.randn(10000, 10000, device=device)
+
 for _ in range(100):
     torch.matmul(a, b)
 print('GPU stress test complete')
