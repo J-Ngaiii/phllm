@@ -51,27 +51,6 @@ def submit_job(script_path, dependency=None):
         print(f"Error output: {e.stderr}")
         return None
 
-def track_stage_duration(stage_num, script_path, conf, dependency=None):
-    stage_name = conf.get_stage_names()[stage_num]
-    marker_path = conf.get_completion_markers()[stage_num]
-
-    print(f"Submitting Stage {stage_num}: {stage_name}")
-    start = time.time()
-    job_id = submit_job(script_path, dependency=dependency)
-    if not job_id:
-        print(f"Stage {stage_num} submission failed")
-        return None, 0
-
-    print(f"Stage {stage_num} submitted with Job ID: {job_id}")
-    print(f"Waiting for completion marker: {marker_path}")
-
-    while not os.path.exists(marker_path):
-        time.sleep(10)  # Poll every 10 seconds
-
-    duration = time.time() - start
-    print(f"✅ Stage {stage_num} completed in {str(datetime.timedelta(seconds=round(duration)))}")
-    return job_id, duration
-
 def create_input_test(args, run_dir):
     script = f"""#!/bin/bash
 #SBATCH --job-name=stage1_input_test
@@ -188,45 +167,23 @@ def main():
 
     conf = pipe_config(args)
     job_ids = {}
-    durations = {}
-
-    print(f"Creating SLURM Scripts in {run_dir}")
-    script1 = create_input_test(args, run_dir)
-    script2 = create_gpu_test(args, run_dir)
-
-    if args.dry_run:
-        print("Dry run: not submitting jobs")
-        print(f"Stage 1 script: {script1}")
-        print(f"Stage 2 script: {script2}")
-        return
-
-    os.chdir(run_dir)
 
     # Stage 1
     if not conf.check_stage_completion(1):
-        job1, dur1 = track_stage_duration(1, "test1.sh", conf)
-        job_ids[1] = job1
-        durations[1] = dur1
+        print("Stage 1 not complete")
     else:
         print("Stage 1 already complete.")
 
     # Stage 2
     if not conf.check_stage_completion(2):
-        dependency = job_ids.get(1)
-        job2, dur2 = track_stage_duration(2, "test2.sh", conf, dependency=dependency)
-        job_ids[2] = job2
-        durations[2] = dur2
+        print("Stage 1 not complete")
     else:
         print("Stage 2 already complete.")
 
     print("=== Summary ===")
     print(f"Run directory: {os.path.abspath(run_dir)}")
-    print("Monitor with: squeue -u $USER")
+    print("Monitor jobs with: squeue -u $USER")
     print(f"Check logs in: {os.path.join(run_dir, 'logs')}")
-
-    for stage in durations:
-        readable = str(datetime.timedelta(seconds=round(durations[stage])))
-        print(f"Stage {stage} duration: {readable}")
 
 if __name__ == "__main__":
     main()
