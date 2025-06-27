@@ -25,8 +25,8 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(log_path),
-        logging.StreamHandler()
+        logging.FileHandler(log_path)
+        #, logging.StreamHandler() No StreamHandler here to silence terminal logging
     ]
 )
 

@@ -55,16 +55,32 @@ def main():
     # =============================================
     # SUBMIT TEST WORKFLOW
     # =============================================
-    print("=" * 60)
-    print("SLURM Test Workflow Submission")
-    print("=" * 60)
-    print(f"Test string:       {test_str}")
-    print(f"Test number:       {test_num}")
-    print(f"Output directory:  {output_dir}")
-    print(f"Project root path: {root_dir}")
-    print(f"SLURM account:     {account}")
-    # print(f"Environment:       {environment}")
-    print()
+    print("""
+    ============================================================
+    SLURM Test Workflow Submission
+    ============================================================
+    Test string:       {test_str}
+    Test number:       {test_num}
+    Output directory:  {output_dir}
+    Project root path: {root_dir}
+    SLURM account:     {account}
+    Partition:         {partition}
+    qos:               {qos}
+    GPU:               {gpu}
+
+    Submitting test workflow with command:
+    {command}
+    """.format(
+        test_str=test_str,
+        test_num=test_num,
+        output_dir=output_dir,
+        root_dir=root_dir,
+        account=account,
+        partition=partition,
+        qos=qos, 
+        gpu=gpu, 
+        command="python3 tst.py " + " ".join(sys.argv[1:])
+    ))
     
     if dry_run:
         print("🧪 DRY RUN MODE - Scripts will be created but not submitted")
