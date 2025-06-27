@@ -7,6 +7,7 @@ import os
 import argparse
 import subprocess
 import time
+import datetime
 import logging
 
 # Compute the absolute path to the shared logs/ directory
@@ -30,7 +31,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
 
 class pipe_config():
     def __init__(self, args):
@@ -74,6 +74,26 @@ def submit_job(script_path, dependency=None):
         logger.error(f"Error output: {e.stderr}")
         return None
 
+def track_stage_duration(stage_num, script_path, conf, dependency=None):
+    stage_name = conf.get_stage_names()[stage_num]
+    marker_path = conf.get_completion_markers()[stage_num]
+
+    logger.info(f"Submitting Stage {stage_num}: {stage_name}")
+    start = time.time()
+    job_id = submit_job(script_path, dependency=dependency)
+    if not job_id:
+        logger.error(f"Stage {stage_num} submission failed")
+        return None, 0
+
+    logger.info(f"Stage {stage_num} submitted with Job ID: {job_id}")
+    logger.info(f"Waiting for completion marker: {marker_path}")
+
+    while not os.path.exists(marker_path):
+        time.sleep(10)  # Poll every 10 seconds
+
+    duration = time.time() - start
+    logger.info(f"✅ Stage {stage_num} completed in {str(datetime.timedelta(seconds=round(duration)))}")
+    return job_id, duration
 
 def create_input_test(args, run_dir):
     script = f"""#!/bin/bash
@@ -193,6 +213,7 @@ def main():
 
     conf = pipe_config(args)
     job_ids = {}
+    durations = {}
 
     logger.info(f"Creating SLURM Scripts in {run_dir}")
     script1 = create_input_test(args, run_dir)
@@ -206,20 +227,20 @@ def main():
 
     os.chdir(run_dir)
 
-    logger.info("Submitting Stage 1: Input Test")
+    # Stage 1
     if not conf.check_stage_completion(1):
-        job1 = submit_job("test1.sh")
+        job1, dur1 = track_stage_duration(1, "test1.sh", conf)
         job_ids[1] = job1
-        logger.info(f"Stage 1 submitted with Job ID: {job1}")
+        durations[1] = dur1
     else:
         logger.info("Stage 1 already complete.")
 
-    logger.info("Submitting Stage 2: GPU Test")
+    # Stage 2
     if not conf.check_stage_completion(2):
         dependency = job_ids.get(1)
-        job2 = submit_job("test2.sh", dependency=dependency)
+        job2, dur2 = track_stage_duration(2, "test2.sh", conf, dependency=dependency)
         job_ids[2] = job2
-        logger.info(f"Stage 2 submitted with Job ID: {job2}")
+        durations[2] = dur2
     else:
         logger.info("Stage 2 already complete.")
 
@@ -227,6 +248,10 @@ def main():
     logger.info(f"Run directory: {os.path.abspath(run_dir)}")
     logger.info("Monitor with: squeue -u $USER")
     logger.info(f"Check logs in: {os.path.join(run_dir, 'logs')}")
+
+    for stage in durations:
+        readable = str(datetime.timedelta(seconds=round(durations[stage])))
+        logger.info(f"Stage {stage} duration: {readable}")
 
 if __name__ == "__main__":
     main()
