@@ -1,51 +1,202 @@
-import sys
+#!/usr/bin/env python3
+"""
+Test SLURM workflow
+"""
+
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'phllm')))
-phllm_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'phllm'))
-print('path: ', phllm_path)
-from datasets import Dataset
-from transformers import TrainingArguments, Trainer
+import argparse
+import subprocess
+import time
 
-from phllm.utils.helpers import rt_dicts, save_to_dir
-from phllm.config.model_factory import get_model
-from phllm.config.directory_paths import get_paths
-from phllm.extract.chunkers import complete_n_select, extract_embeddings
+class pipe_config():
+    def __init__(self, args):
+        self.args = args
+        output_dir = args.output
+        self.completion_markers = {
+            1: os.path.join(output_dir, "stage1_complete.txt"),
+            2: os.path.join(output_dir, "stage2_complete.txt"),
+        }
+        self.stage_names = {
+            1: "Input Test", 
+            2: "GPU Test"
+        }
 
+    def get_stage_names(self):
+        return self.stage_names
 
+    def get_completion_markers(self):
+        return self.completion_markers
 
-# Setting Variables
-LLM = "prokbert"
-CONTEXT_WINDOW = 4000
-STRAIN_INPUT = "/global/home/users/jonathanngai/main/phllm/data/raw/ecoli/strains"
-PHAGE_INPUT = "/global/home/users/jonathanngai/main/phllm/data/raw/ecoli/phages"
-STRAIN_OUTPUT = "/global/home/users/jonathanngai/main/phllm/data/embeddings/ecoli/strains"
-PHAGE_OUTPUT = "/global/home/users/jonathanngai/main/phllm/data/embeddings/ecoli/phages"
-BACTERIA = "ecoli"
+    def check_stage_completion(self, stage):
+        marker = self.completion_markers.get(stage)
+        if marker and os.path.exists(marker):
+            print(f"✅ Stage {stage} appears complete (found: {marker})")
+            return True
+        return False
 
-# Pulling genomes into dictionaries to load into model
-ecoli_strains = rt_dicts(path=STRAIN_INPUT, seq_report=True)
-ecoli_phages = rt_dicts(path=PHAGE_INPUT, strn_or_phg='phage', seq_report=True)
+def submit_job(script_path, dependency=None):
+    """Submit a SLURM job and return job ID."""
+    cmd = ['sbatch', '--parsable']
+    if dependency:
+        cmd += ['--dependency', f'afterok:{dependency}']
+    cmd.append(script_path)
 
-# Setting up model
-tokenizer = get_model(llm=LLM, rv='tokenizer')
-model = get_model(llm=LLM, rv='model')
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"Error submitting {script_path}: {e}")
+        print(f"Error output: {e.stderr}")
+        return None
 
-def tokenize_func(examples, max_length=CONTEXT_WINDOW):
-    return tokenizer(
-        examples['base_pairs'],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
-        padding=True,
-        truncation=True,
-        max_length=max_length,
-        return_tensors='pt'
-    )
+def create_input_test(args, run_dir):
+    script = f"""#!/bin/bash
+#SBATCH --job-name=stage1_input_test
+#SBATCH --account={args.account}
+#SBATCH --partition={args.partition}
+#SBATCH --qos={args.qos}
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --gres={args.gpu}
+#SBATCH --time=1:00:00
+#SBATCH --output=logs/stage1_%j.out
+#SBATCH --error=logs/stage1_%j.err
 
-# Chunking and Extracting Embeddings
-estrain_n_select, estrain_pads = complete_n_select(ecoli_strains, CONTEXT_WINDOW)
-ephage_n_select, ephage_pads = complete_n_select(ecoli_phages, CONTEXT_WINDOW)
+echo "=== Test 1: Input Validity ==="
 
-estrain_embed = extract_embeddings(estrain_n_select, CONTEXT_WINDOW, tokenize_func, model)
-ephage_embed = extract_embeddings(ephage_n_select, CONTEXT_WINDOW, tokenize_func, model)
+module load anaconda3
+conda activate {args.environment} || {{
+    conda init bash
+    source ~/.bashrc
+    conda activate {args.environment}
+}}
 
-# Saving Embeddings to Directory
-save_to_dir(STRAIN_OUTPUT, embeddings=estrain_embed, pads=estrain_pads, name=BACTERIA, strn_or_phage='strain')
-save_to_dir(PHAGE_OUTPUT, embeddings=ephage_embed, pads=ephage_pads, name=BACTERIA, strn_or_phage='phage')
+echo "=== Test Argument Inputs ==="
+python3 -c "
+test_string = '{args.test_str}'
+test_num = {args.test_num}
+output_dir = '{args.output}'
+print('Test String type check:', type(test_string))
+print('Test Num type check:', type(test_num))
+print('Output Directory type check:', type(output_dir))
+print('Hi', test_string)
+print(test_num * 10)
+"
+
+touch {args.output}/stage1_complete.txt
+"""
+    path = os.path.join(run_dir, "test1.sh")
+    with open(path, 'w') as f:
+        f.write(script)
+    os.chmod(path, 0o755)
+    return path
+
+def create_gpu_test(args, run_dir):
+    script = f"""#!/bin/bash
+#SBATCH --job-name=stage2_gpu_test
+#SBATCH --account={args.account}
+#SBATCH --partition={args.partition}
+#SBATCH --qos={args.qos}
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --gres={args.gpu}
+#SBATCH --time=1:00:00
+#SBATCH --output=logs/stage2_%j.out
+#SBATCH --error=logs/stage2_%j.err
+
+echo "=== Test 2: GPU Test ==="
+
+module load anaconda3
+conda activate {args.environment} || {{
+    conda init bash
+    source ~/.bashrc
+    conda activate {args.environment}
+}}
+
+nvidia-smi || echo "No GPUs found"
+python3 -c "
+import torch
+print('CUDA available:', torch.cuda.is_available())
+print('Number of GPUs:', torch.cuda.device_count())
+"
+
+python3 -c "
+import torch
+a = torch.randn(10000, 10000).cuda()
+b = torch.randn(10000, 10000).cuda()
+for _ in range(100):
+    torch.matmul(a, b)
+print('GPU stress test complete')
+"
+
+touch {args.output}/stage2_complete.txt
+"""
+    path = os.path.join(run_dir, "test2.sh")
+    with open(path, 'w') as f:
+        f.write(script)
+    os.chmod(path, 0o755)
+    return path
+
+def main():
+    parser = argparse.ArgumentParser(description="Submit 2-stage SLURM test workflow")
+
+    parser.add_argument('--test_str', required=True)
+    parser.add_argument('--test_num', type=int, required=True)
+    parser.add_argument('--output', required=True)
+
+    parser.add_argument('--account', default='ac_mak')
+    parser.add_argument('--partition', default='es1')
+    parser.add_argument('--qos', default='es_normal')
+    parser.add_argument('--environment', default='phage_modeling')
+    parser.add_argument('--gpu', default='gpu:1')
+    parser.add_argument('--dry_run', action='store_true')
+
+    args = parser.parse_args()
+
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    run_dir = f"slurm_run_{timestamp}"
+    os.makedirs(run_dir, exist_ok=True)
+    os.makedirs(os.path.join(run_dir, "logs"), exist_ok=True)
+
+    conf = pipe_config(args)
+    job_ids = {}
+
+    print(f"\n=== Creating SLURM Scripts in {run_dir} ===")
+    script1 = create_input_test(args, run_dir)
+    script2 = create_gpu_test(args, run_dir)
+
+    if args.dry_run:
+        print("Dry run: not submitting jobs")
+        print("Scripts created:")
+        print("  Stage 1:", script1)
+        print("  Stage 2:", script2)
+        return
+
+    os.chdir(run_dir)
+
+    print("\nSubmitting Stage 1: Input Test")
+    if not conf.check_stage_completion(1):
+        job1 = submit_job("test1.sh")
+        job_ids[1] = job1
+        print(f"Stage 1 submitted with Job ID: {job1}")
+    else:
+        print("Stage 1 already complete.")
+
+    print("\nSubmitting Stage 2: GPU Test")
+    if not conf.check_stage_completion(2):
+        dependency = job_ids.get(1)
+        job2 = submit_job("test2.sh", dependency=dependency)
+        job_ids[2] = job2
+        print(f"Stage 2 submitted with Job ID: {job2}")
+    else:
+        print("Stage 2 already complete.")
+
+    print("\n=== Summary ===")
+    print("Run directory:", os.path.abspath(run_dir))
+    print("Monitor with: squeue -u $USER")
+    print("Check logs in:", os.path.join(run_dir, "logs"))
+
+if __name__ == "__main__":
+    main()

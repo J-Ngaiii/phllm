@@ -60,13 +60,13 @@ def create_full_pipe(args, run_dir):
     """Stage 1: extracting phage and strain data into a tokenized huggingface dataset"""
     script_content = f"""#!/bin/bash
 #SBATCH --job-name=full_pipe
-#SBATCH --account='{args.account}'
-#SBATCH --partition='{args.partition}'
-#SBATCH --qos='{args.qos}'
+#SBATCH --account={args.account}
+#SBATCH --partition={args.partition}
+#SBATCH --qos={args.qos}
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --gres='{args.gpu}'
+#SBATCH --gres={args.gpu}
 #SBATCH --mem=80G
 #SBATCH --time=6:00:00
 #SBATCH --output={run_dir}/logs/pipe_%j.out
