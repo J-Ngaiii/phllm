@@ -21,7 +21,8 @@ def main():
     account = "ac_mak"
     partition = "es1"                  # SLURM partition 
     qos = "es_normal"                  # SLURM QOS
-    environment = "env_1"             # Conda environment name
+    # environment = "env_1"             # Conda environment name
+    root_dir = "/global/home/users/jonathanngai/main/phllm"
     gpu = "gpu:H100:1"
     
     # =============================================
@@ -43,7 +44,8 @@ def main():
         "--account", account,
         "--partition", partition,
         "--qos", qos,
-        "--environment", environment,
+        "--root_dir", root_dir, 
+        # "--environment", environment,
         "--gpu", gpu
     ]
     
@@ -59,8 +61,9 @@ def main():
     print(f"Test string:       {test_str}")
     print(f"Test number:       {test_num}")
     print(f"Output directory:  {output_dir}")
+    print(f"Project root path: {root_dir}")
     print(f"SLURM account:     {account}")
-    print(f"Environment:       {environment}")
+    # print(f"Environment:       {environment}")
     print()
     
     if dry_run:

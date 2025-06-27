@@ -65,12 +65,12 @@ def create_input_test(args, run_dir):
 
 echo "=== Test 1: Input Validity ==="
 
-module load anaconda3
-conda activate {args.environment} || {{
-    conda init bash
-    source ~/.bashrc
-    conda activate {args.environment}
-}}
+echo "=== Initializing Environment ==="
+module load ml/pytorch
+echo "Successfully loaded cluster pytorhc enviornment"
+cd {args.root_dir}
+pip install -e .
+echo "Successfully installed local package"
 
 echo "=== Test Argument Inputs ==="
 python3 -c "
@@ -109,12 +109,12 @@ def create_gpu_test(args, run_dir):
 
 echo "=== Test 2: GPU Test ==="
 
-module load anaconda3
-conda activate {args.environment} || {{
-    conda init bash
-    source ~/.bashrc
-    conda activate {args.environment}
-}}
+echo "=== Initializing Environment ==="
+module load ml/pytorch
+echo "Successfully loaded cluster pytorhc enviornment"
+cd {args.root_dir}
+pip install -e .
+echo "Successfully installed local package"
 
 nvidia-smi || echo "No GPUs found"
 python3 -c "
@@ -153,7 +153,8 @@ def main():
     parser.add_argument('--account', default='ac_mak')
     parser.add_argument('--partition', default='es1')
     parser.add_argument('--qos', default='es_normal')
-    parser.add_argument('--environment', default='phage_modeling')
+    parser.add_argument('--root_dir', default='/global/home/users/jonathanngai/main/phllm')
+    # parser.add_argument('--environment', default='env_1')
     parser.add_argument('--gpu', default='gpu:1')
     parser.add_argument('--dry_run', action='store_true')
 
