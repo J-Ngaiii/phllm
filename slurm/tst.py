@@ -4,33 +4,11 @@ Test SLURM workflow (uses logger)
 """
 
 import os
-import argparse
-import subprocess
+import sys
 import time
 import datetime
-import logging
-
-# Compute the absolute path to the shared logs/ directory
-script_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(script_dir, ".."))
-log_dir = os.path.join(project_root, "logs")
-os.makedirs(log_dir, exist_ok=True)
-
-# Create a time-stamped log file
-log_filename = f"workflow_{time.strftime('%Y%m%d_%H%M%S')}.log"
-log_path = os.path.join(log_dir, log_filename)
-
-# Set up logging to both file and console
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler(log_path)
-        #, logging.StreamHandler() No StreamHandler here to silence terminal logging
-    ]
-)
-
-logger = logging.getLogger(__name__)
+import subprocess
+import argparse
 
 class pipe_config():
     def __init__(self, args):
@@ -41,7 +19,7 @@ class pipe_config():
             2: os.path.join(output_dir, "stage2_complete.txt"),
         }
         self.stage_names = {
-            1: "Input Test", 
+            1: "Input Test",
             2: "GPU Test"
         }
 
@@ -54,10 +32,9 @@ class pipe_config():
     def check_stage_completion(self, stage):
         marker = self.completion_markers.get(stage)
         if marker and os.path.exists(marker):
-            logger.info(f"✅ Stage {stage} appears complete (found: {marker})")
+            print(f"✅ Stage {stage} appears complete (found: {marker})")
             return True
         return False
-
 
 def submit_job(script_path, dependency=None):
     """Submit a SLURM job and return job ID."""
@@ -70,29 +47,29 @@ def submit_job(script_path, dependency=None):
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error submitting {script_path}: {e}")
-        logger.error(f"Error output: {e.stderr}")
+        print(f"Error submitting {script_path}: {e}")
+        print(f"Error output: {e.stderr}")
         return None
 
 def track_stage_duration(stage_num, script_path, conf, dependency=None):
     stage_name = conf.get_stage_names()[stage_num]
     marker_path = conf.get_completion_markers()[stage_num]
 
-    logger.info(f"Submitting Stage {stage_num}: {stage_name}")
+    print(f"Submitting Stage {stage_num}: {stage_name}")
     start = time.time()
     job_id = submit_job(script_path, dependency=dependency)
     if not job_id:
-        logger.error(f"Stage {stage_num} submission failed")
+        print(f"Stage {stage_num} submission failed")
         return None, 0
 
-    logger.info(f"Stage {stage_num} submitted with Job ID: {job_id}")
-    logger.info(f"Waiting for completion marker: {marker_path}")
+    print(f"Stage {stage_num} submitted with Job ID: {job_id}")
+    print(f"Waiting for completion marker: {marker_path}")
 
     while not os.path.exists(marker_path):
         time.sleep(10)  # Poll every 10 seconds
 
     duration = time.time() - start
-    logger.info(f"✅ Stage {stage_num} completed in {str(datetime.timedelta(seconds=round(duration)))}")
+    print(f"✅ Stage {stage_num} completed in {str(datetime.timedelta(seconds=round(duration)))}")
     return job_id, duration
 
 def create_input_test(args, run_dir):
@@ -137,7 +114,6 @@ touch {args.output}/stage1_complete.txt
         f.write(script)
     os.chmod(path, 0o755)
     return path
-
 
 def create_gpu_test(args, run_dir):
     script = f"""#!/bin/bash
@@ -189,7 +165,6 @@ touch {args.output}/stage2_complete.txt
     os.chmod(path, 0o755)
     return path
 
-
 def main():
     parser = argparse.ArgumentParser(description="Submit 2-stage SLURM test workflow")
 
@@ -215,14 +190,14 @@ def main():
     job_ids = {}
     durations = {}
 
-    logger.info(f"Creating SLURM Scripts in {run_dir}")
+    print(f"Creating SLURM Scripts in {run_dir}")
     script1 = create_input_test(args, run_dir)
     script2 = create_gpu_test(args, run_dir)
 
     if args.dry_run:
-        logger.info("Dry run: not submitting jobs")
-        logger.info(f"Stage 1 script: {script1}")
-        logger.info(f"Stage 2 script: {script2}")
+        print("Dry run: not submitting jobs")
+        print(f"Stage 1 script: {script1}")
+        print(f"Stage 2 script: {script2}")
         return
 
     os.chdir(run_dir)
@@ -233,7 +208,7 @@ def main():
         job_ids[1] = job1
         durations[1] = dur1
     else:
-        logger.info("Stage 1 already complete.")
+        print("Stage 1 already complete.")
 
     # Stage 2
     if not conf.check_stage_completion(2):
@@ -242,16 +217,20 @@ def main():
         job_ids[2] = job2
         durations[2] = dur2
     else:
-        logger.info("Stage 2 already complete.")
+        print("Stage 2 already complete.")
 
-    logger.info("=== Summary ===")
-    logger.info(f"Run directory: {os.path.abspath(run_dir)}")
-    logger.info("Monitor with: squeue -u $USER")
-    logger.info(f"Check logs in: {os.path.join(run_dir, 'logs')}")
+    print("=== Summary ===")
+    print(f"Run directory: {os.path.abspath(run_dir)}")
+    print("Monitor with: squeue -u $USER")
+    print(f"Check logs in: {os.path.join(run_dir, 'logs')}")
 
     for stage in durations:
         readable = str(datetime.timedelta(seconds=round(durations[stage])))
-        logger.info(f"Stage {stage} duration: {readable}")
+        print(f"Stage {stage} duration: {readable}")
+
+if __name__ == "__main__":
+    main()
+
 
 if __name__ == "__main__":
     main()
