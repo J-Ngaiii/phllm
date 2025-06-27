@@ -1,12 +1,36 @@
 #!/usr/bin/env python3
 """
-Test SLURM workflow
+Test SLURM workflow (uses logger)
 """
 
 import os
 import argparse
 import subprocess
 import time
+import logging
+
+# Compute the absolute path to the shared logs/ directory
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(script_dir, ".."))
+log_dir = os.path.join(project_root, "logs")
+os.makedirs(log_dir, exist_ok=True)
+
+# Create a time-stamped log file
+log_filename = f"workflow_{time.strftime('%Y%m%d_%H%M%S')}.log"
+log_path = os.path.join(log_dir, log_filename)
+
+# Set up logging to both file and console
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(log_path),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
 
 class pipe_config():
     def __init__(self, args):
@@ -30,9 +54,10 @@ class pipe_config():
     def check_stage_completion(self, stage):
         marker = self.completion_markers.get(stage)
         if marker and os.path.exists(marker):
-            print(f"✅ Stage {stage} appears complete (found: {marker})")
+            logger.info(f"✅ Stage {stage} appears complete (found: {marker})")
             return True
         return False
+
 
 def submit_job(script_path, dependency=None):
     """Submit a SLURM job and return job ID."""
@@ -45,9 +70,10 @@ def submit_job(script_path, dependency=None):
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error submitting {script_path}: {e}")
-        print(f"Error output: {e.stderr}")
+        logger.error(f"Error submitting {script_path}: {e}")
+        logger.error(f"Error output: {e.stderr}")
         return None
+
 
 def create_input_test(args, run_dir):
     script = f"""#!/bin/bash
@@ -85,13 +111,13 @@ print(test_num * 10)
 "
 
 touch {args.output}/stage1_complete.txt
-
 """
     path = os.path.join(run_dir, "test1.sh")
     with open(path, 'w') as f:
         f.write(script)
     os.chmod(path, 0o755)
     return path
+
 
 def create_gpu_test(args, run_dir):
     script = f"""#!/bin/bash
@@ -143,6 +169,7 @@ touch {args.output}/stage2_complete.txt
     os.chmod(path, 0o755)
     return path
 
+
 def main():
     parser = argparse.ArgumentParser(description="Submit 2-stage SLURM test workflow")
 
@@ -154,7 +181,6 @@ def main():
     parser.add_argument('--partition', default='es1')
     parser.add_argument('--qos', default='es_normal')
     parser.add_argument('--root_dir', default='/global/home/users/jonathanngai/main/phllm')
-    # parser.add_argument('--environment', default='env_1')
     parser.add_argument('--gpu', default='gpu:1')
     parser.add_argument('--dry_run', action='store_true')
 
@@ -168,40 +194,39 @@ def main():
     conf = pipe_config(args)
     job_ids = {}
 
-    print(f"\n=== Creating SLURM Scripts in {run_dir} ===")
+    logger.info(f"Creating SLURM Scripts in {run_dir}")
     script1 = create_input_test(args, run_dir)
     script2 = create_gpu_test(args, run_dir)
 
     if args.dry_run:
-        print("Dry run: not submitting jobs")
-        print("Scripts created:")
-        print("  Stage 1:", script1)
-        print("  Stage 2:", script2)
+        logger.info("Dry run: not submitting jobs")
+        logger.info(f"Stage 1 script: {script1}")
+        logger.info(f"Stage 2 script: {script2}")
         return
 
     os.chdir(run_dir)
 
-    print("\nSubmitting Stage 1: Input Test")
+    logger.info("Submitting Stage 1: Input Test")
     if not conf.check_stage_completion(1):
         job1 = submit_job("test1.sh")
         job_ids[1] = job1
-        print(f"Stage 1 submitted with Job ID: {job1}")
+        logger.info(f"Stage 1 submitted with Job ID: {job1}")
     else:
-        print("Stage 1 already complete.")
+        logger.info("Stage 1 already complete.")
 
-    print("\nSubmitting Stage 2: GPU Test")
+    logger.info("Submitting Stage 2: GPU Test")
     if not conf.check_stage_completion(2):
         dependency = job_ids.get(1)
         job2 = submit_job("test2.sh", dependency=dependency)
         job_ids[2] = job2
-        print(f"Stage 2 submitted with Job ID: {job2}")
+        logger.info(f"Stage 2 submitted with Job ID: {job2}")
     else:
-        print("Stage 2 already complete.")
+        logger.info("Stage 2 already complete.")
 
-    print("\n=== Summary ===")
-    print("Run directory:", os.path.abspath(run_dir))
-    print("Monitor with: squeue -u $USER")
-    print("Check logs in:", os.path.join(run_dir, "logs"))
+    logger.info("=== Summary ===")
+    logger.info(f"Run directory: {os.path.abspath(run_dir)}")
+    logger.info("Monitor with: squeue -u $USER")
+    logger.info(f"Check logs in: {os.path.join(run_dir, 'logs')}")
 
 if __name__ == "__main__":
     main()
