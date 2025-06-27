@@ -97,7 +97,7 @@ pip install -e .
 echo "Successfully installed local package"
 
 python3 -c "
-from phllm.pipeline import main_slurm
+from phllm.pipeline.main_slurm import main_slurm
 
 main_slurm(
     llm='{args.llm}',
