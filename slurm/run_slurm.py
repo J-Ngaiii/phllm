@@ -16,6 +16,7 @@ def main():
     output_strain = "/global/home/users/jonathanngai/main/phllm/data/embeddings/ecoli/strains"
     output_phage = "/global/home/users/jonathanngai/main/phllm/data/embeddings/ecoli/phages"
     output_dir = "/global/home/users/jonathanngai/main/phllm/data/outputs/ecoli"
+    root_dir = "/global/home/users/jonathanngai/main/phllm"
     
     # =============================================
     # SLURM CONFIGURATION
@@ -61,6 +62,7 @@ def main():
         "--account", account,
         "--partition", partition,
         "--qos", qos,
+        "--root_dir", root_dir,
         # "--environment", environment,
         "--gpu", gpu
     ]
@@ -71,15 +73,34 @@ def main():
     # =============================================
     # SUBMIT WORKFLOW
     # =============================================
-    print("=" * 60)
-    print("SLURM Workflow Submission")
-    print("=" * 60)
-    print(f"Input strain:      {input_strain}")
-    print(f"Input phage:       {input_phage}")
-    print(f"Output directory:  {output_dir}")
-    print(f"SLURM account:     {account}")
-    # print(f"Environment:       {environment}")
-    print()
+    print("""
+    ============================================================
+    SLURM {llm} Embedding Workflow Submission
+    ============================================================
+    LLM Model:         {llm}
+    Context Window:    {context}
+    Bacteria:          {bact}
+    Output directory:  {output_dir}
+    Project root path: {root_dir}
+    SLURM account:     {account}
+    Partition:         {partition}
+    qos:               {qos}
+    GPU:               {gpu}
+
+    Submitting test workflow with command:
+    {command}
+    """.format(
+        llm=llm,
+        context=context_window,
+        bact=name_bact, 
+        output_dir=output_dir,
+        root_dir=root_dir,
+        account=account,
+        partition=partition,
+        qos=qos, 
+        gpu=gpu, 
+        command="python3 slurm_embed.py " + " ".join(sys.argv[1:])
+    ))
     
     if dry_run:
         print("🧪 DRY RUN MODE - Scripts will be created but not submitted")
