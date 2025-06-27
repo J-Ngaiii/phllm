@@ -86,7 +86,7 @@ def create_full_pipe(args, run_dir):
 #SBATCH --output={run_dir}/logs/pipe_%j.out
 #SBATCH --error={run_dir}/logs/pipe_%j.out
 
-echo "=== Stage 1: Tokenizing Data ==="
+echo "=== Stage 1: Full Pipe ==="
 echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
 
 echo "=== Initializing Environment ==="
@@ -96,16 +96,19 @@ cd {args.root_dir}
 pip install -e .
 echo "Successfully installed local package"
 
-python3 -c \"
-# running the actual code from a seperate file helps with debugging
-import json
-from types import SimpleNamespace
+python3 -c "
 from phllm.pipeline import main_slurm
 
-args_dict = json.loads(\\"{json_args}\\")
-args = SimpleNamespace(**args_dict)
-main_slurm(args)
-\"
+main_slurm(
+    llm='{args.llm}',
+    context_window={args.context_window},
+    input_strain='{args.input_strain}',
+    input_phage='{args.input_phage}',
+    output_strain='{args.output_strain}',
+    output_phage='{args.output_phage}',
+    name_bact='{args.name_bact}'
+    )
+"
 
 echo "Stage 1 completed: $(date)"
 """
