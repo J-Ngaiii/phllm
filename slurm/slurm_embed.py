@@ -102,7 +102,7 @@ import json
 from types import SimpleNamespace
 from phllm.pipeline import main_slurm
 
-args_dict = json.loads('''{json_args}''')
+args_dict = json.loads(\\"{json_args}\\")
 args = SimpleNamespace(**args_dict)
 main_slurm(args)
 \"
