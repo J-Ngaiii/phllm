@@ -23,7 +23,7 @@ def main():
     account = "ac_mak"
     partition = "es1"                    # SLURM partition 
     qos = "es_normal"                    # SLURM QOS
-    environment = "env_1"       # Conda environment name
+    # environment = "env_1"       # Conda environment name
     gpu = "gpu:H100:1"
 
     
@@ -61,7 +61,7 @@ def main():
         "--account", account,
         "--partition", partition,
         "--qos", qos,
-        "--environment", environment,
+        # "--environment", environment,
         "--gpu", gpu
     ]
     
@@ -78,7 +78,7 @@ def main():
     print(f"Input phage:       {input_phage}")
     print(f"Output directory:  {output_dir}")
     print(f"SLURM account:     {account}")
-    print(f"Environment:       {environment}")
+    # print(f"Environment:       {environment}")
     print()
     
     if dry_run:

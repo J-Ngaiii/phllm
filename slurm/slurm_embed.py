@@ -11,6 +11,7 @@ import sys
 import argparse
 import subprocess
 import time
+import json
 
 class pipe_config():
     
@@ -58,6 +59,19 @@ def submit_job(script_path):
 
 def create_full_pipe(args, run_dir):
     """Stage 1: extracting phage and strain data into a tokenized huggingface dataset"""
+    # Convert relevant args to dict
+    args_dict = {
+        "llm": args.llm,
+        "context_window": args.context_window,
+        "input_strain": args.input_strain,
+        "input_phage": args.input_phage,
+        "output_strain": args.output_strain,
+        "output_phage": args.output_phage,
+        "name_bact": args.name_bact,
+        # Add more if needed
+    }
+    json_args = json.dumps(args_dict)
+    
     script_content = f"""#!/bin/bash
 #SBATCH --job-name=full_pipe
 #SBATCH --account={args.account}
@@ -75,78 +89,23 @@ def create_full_pipe(args, run_dir):
 echo "=== Stage 1: Tokenizing Data ==="
 echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
 
-echo "=== Enviornment Setup ({args.environment}) ==="
-module load anaconda3
-conda activate {args.environment} 2>&1 || {{
-    echo "Direct activation failed, trying with conda init..."
-    conda init bash >/dev/null 2>&1
-    source ~/.bashrc >/dev/null 2>&1
-    conda activate {args.environment}
-}}
+echo "=== Initializing Environment ==="
+module load ml/pytorch
+echo "Successfully loaded cluster pytorhc enviornment"
+cd {args.root_dir}
+pip install -e .
+echo "Successfully installed local package"
 
-echo "=== GPU info ==="
-nvidia-smi || echo "No GPUs found or NVIDIA drivers missing"
-python3 -c "
-import torch
-print('CUDA available:', torch.cuda.is_available())
-print('Number of GPUs:', torch.cuda.device_count())
-"
+python3 -c \"
+# running the actual code from a seperate file helps with debugging
+import json
+from types import SimpleNamespace
+from phllm.pipeline import main_slurm
 
-python -c "import torch; print(torch.version.cuda)"
-
-python3 -c "
-import sys
-import os
-from datasets import Dataset
-from transformers import TrainingArguments, Trainer
-import torch
-
-from phllm.utils.helpers import rt_dicts, save_to_dir
-from phllm.config.model_factory import get_model
-from phllm.config.directory_paths import get_paths
-from phllm.extract.chunkers import complete_n_select, extract_embeddings
-
-# Initializing Cuda
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-print('Using device: ', device)
-
-# Setting Variables
-LLM = '{args.llm}'
-CONTEXT_WINDOW = {args.context_window}
-STRAIN_INPUT = '{args.input_strain}'
-PHAGE_INPUT = '{args.input_phage}'
-STRAIN_OUTPUT = '{args.output_strain}'
-PHAGE_OUTPUT = '{args.output_phage}'
-BACTERIA = '{args.name_bact}'
-
-# Pulling genomes into dictionaries to load into model
-ecoli_strains = rt_dicts(path=STRAIN_INPUT, seq_report=True)
-ecoli_phages = rt_dicts(path=PHAGE_INPUT, strn_or_phg='phage', seq_report=True)
-
-# Setting up model
-tokenizer = get_model(llm=LLM, rv='tokenizer')
-model = get_model(llm=LLM, rv='model')
-
-def tokenize_func(examples, max_length=CONTEXT_WINDOW):
-    return tokenizer(
-        examples['base_pairs'],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
-        padding=True,
-        truncation=True,
-        max_length=max_length,
-        return_tensors='pt'
-    )
-
-# Chunking and Extracting Embeddings
-estrain_n_select, estrain_pads = complete_n_select(ecoli_strains, CONTEXT_WINDOW)
-ephage_n_select, ephage_pads = complete_n_select(ecoli_phages, CONTEXT_WINDOW)
-
-estrain_embed = extract_embeddings(estrain_n_select, CONTEXT_WINDOW, tokenize_func, model)
-ephage_embed = extract_embeddings(ephage_n_select, CONTEXT_WINDOW, tokenize_func, model)
-
-# Saving Embeddings to Directory
-save_to_dir(STRAIN_OUTPUT, embeddings=estrain_embed, pads=estrain_pads, name=BACTERIA, strn_or_phage='strain')
-save_to_dir(PHAGE_OUTPUT, embeddings=ephage_embed, pads=ephage_pads, name=BACTERIA, strn_or_phage='phage')
-"
+args_dict = json.loads('''{json_args}''')
+args = SimpleNamespace(**args_dict)
+main_slurm(args)
+\"
 
 echo "Stage 1 completed: $(date)"
 """
