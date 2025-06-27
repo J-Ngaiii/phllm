@@ -154,7 +154,8 @@ def main():
     print(f"Output directory: {args.output}")
     print(f"Output Strain directory: {args.output_strain}")
     print(f"Output Phage directory: {args.output_phage}")
-    print(f"Account: {args.account}, Environment: {args.environment}")
+    print(f"Account: {args.account}")
+    print(f"Local package root directory: {args.root_dir}")
     print()
     
     # Check which stages are already complete
