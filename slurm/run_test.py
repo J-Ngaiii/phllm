@@ -13,7 +13,7 @@ def main():
     # =============================================
     test_str = "phage-buddy"
     test_num = 42
-    output_dir = "/global/home/users/jonathanngai/main/phllm/data"
+    output_dir = "/global/home/users/jonathanngai/main/phllm/data/test_outputs"
     
     # =============================================
     # SLURM CONFIGURATION
