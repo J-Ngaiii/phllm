@@ -179,7 +179,7 @@ def main():
     # Create all scripts
     print("Creating SLURM job scripts...")
     scripts = {}
-    scripts[1] = create_full_pipe(args, run_dir)
+    scripts[1] = create_full_pipe(args, run_dir) # outputs path to .sh file
     
     if args.dry_run:
         print("Dry run - scripts created but not submitted")
@@ -198,7 +198,8 @@ def main():
     
     print("Submitting jobs...")
     for key, path in scripts.items():
-        jobid = submit_job(path)
+        base_name = os.path.basename(path)
+        jobid = submit_job(base_name)
         job_ids[key] = jobid
     
     # Submit starting stage

@@ -124,7 +124,6 @@ echo "=== Test 2: GPU Test ==="
 
 echo "=== Initializing Environment ==="
 module load ml/pytorch/2.3.1-py3.11.7
-module load cuda/12.1
 echo "Successfully loaded cluster pytorhc enviornment"
 cd {args.root_dir}
 pip install -e .
