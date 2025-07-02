@@ -180,17 +180,21 @@ def main():
     conf = pipe_config(args)
     job_ids = {}
 
+    # Submitting Scripts
+    stage1_path = create_input_test(args, run_dir=run_dir)
+    stage2_path = create_gpu_test(args, run_dir=run_dir)
+
     # Stage 1
     if not conf.check_stage_completion(1):
         print("Stage 1 not complete, submitting job...")
-        job1_id = submit_job("test1.sh")
+        job1_id = submit_job(stage1_path)
     else:
         print("Stage 1 already complete.")
 
     # Stage 2
     if not conf.check_stage_completion(2):
         print("Stage 2 not complete, submitting job...")
-        job2_id = submit_job("test2.sh", dependency=job1_id)
+        job2_id = submit_job(stage2_path)
     else:
         print("Stage 2 already complete.")
 
