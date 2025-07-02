@@ -77,10 +77,11 @@ def create_input_test(args, run_dir):
 #SBATCH --error=logs/stage1_%j.err
 
 echo "=== Test 1: Input Validity ==="
+echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
 
 echo "=== Initializing Environment ==="
 module load ml/pytorch
-echo "Successfully loaded cluster pytorhc enviornment"
+echo "Successfully loaded cluster pytorch enviornment"
 cd {args.root_dir}
 pip install -e .
 echo "Successfully installed local package"

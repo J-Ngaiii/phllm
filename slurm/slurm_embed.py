@@ -92,7 +92,7 @@ echo "=== Initializing Environment ==="
 module load ml/pytorch
 pip install --upgrade --user accelerate
 pip install --user transformers[torch]
-echo "Successfully loaded cluster pytorhc enviornment"
+echo "Successfully loaded cluster pytorch enviornment"
 cd {args.root_dir}
 pip install -e .
 echo "Successfully installed local package"
