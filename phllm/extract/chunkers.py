@@ -131,7 +131,7 @@ def extract_embeddings(
   # Setup Cuda
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
   model.to(device)
-  print(f"Model is on device: {next(model.parameters()).device}")
+  print(f"Extract_Embeddings Cuda Check:\nModel is on device: {next(model.parameters()).device}")
 
   for i in range(arr.shape[1]):
     curr = arr[:, i]

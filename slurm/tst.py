@@ -37,7 +37,16 @@ class pipe_config():
         return False
 
 def submit_job(script_path, dependency=None):
-    """Submit a SLURM job and return job ID."""
+    """
+    Submit a SLURM job and return the job ID string.
+
+    Parameters:
+    - script_path (str): Path to the SLURM job script file.
+    - dependency (str or None): Optional SLURM job ID to add a dependency on.
+
+    Returns:
+    - job_id (str or None): Job ID string if submission succeeded, else None.
+    """
     cmd = ['sbatch', '--parsable']
     if dependency:
         cmd += ['--dependency', f'afterok:{dependency}']
@@ -45,11 +54,13 @@ def submit_job(script_path, dependency=None):
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        return result.stdout.strip()
+        job_id = result.stdout.strip()
+        print(f"Submitted job {job_id} with script {script_path}")
+        return job_id
     except subprocess.CalledProcessError as e:
-        print(f"Error submitting {script_path}: {e}")
-        print(f"Error output: {e.stderr}")
+        print(f"Failed to submit job {script_path}: {e.stderr.strip()}")
         return None
+
 
 def create_input_test(args, run_dir):
     script = f"""#!/bin/bash
@@ -170,13 +181,15 @@ def main():
 
     # Stage 1
     if not conf.check_stage_completion(1):
-        print("Stage 1 not complete")
+        print("Stage 1 not complete, submitting job...")
+        job1_id = submit_job("test1.sh")
     else:
         print("Stage 1 already complete.")
 
     # Stage 2
     if not conf.check_stage_completion(2):
-        print("Stage 1 not complete")
+        print("Stage 2 not complete, submitting job...")
+        job2_id = submit_job("test2.sh", dependency=job1_id)
     else:
         print("Stage 2 already complete.")
 
@@ -184,10 +197,6 @@ def main():
     print(f"Run directory: {os.path.abspath(run_dir)}")
     print("Monitor jobs with: squeue -u $USER")
     print(f"Check logs in: {os.path.join(run_dir, 'logs')}")
-
-if __name__ == "__main__":
-    main()
-
 
 if __name__ == "__main__":
     main()

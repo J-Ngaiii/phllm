@@ -1,3 +1,4 @@
+import torch
 from phllm.utils.helpers import rt_dicts, save_to_dir
 from phllm.config.model_factory import get_model
 from phllm.extract.chunkers import complete_n_select, extract_embeddings
@@ -12,6 +13,10 @@ def main_slurm(
         output_phage = "/global/home/users/jonathanngai/main/phllm/data/embeddings/ecoli/phages", 
         name_bact = "ecoli"
     ):
+    # Main Cude Check
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.to(device)
+    print(f"Main Cuda Check:\nModel is on device: {next(model.parameters()).device}")
 
     # Pulling genomes into dictionaries to load into model
     ecoli_strains = rt_dicts(path=input_strain, seq_report=True)
