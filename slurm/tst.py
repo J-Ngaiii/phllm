@@ -124,11 +124,17 @@ echo "=== Test 2: GPU Test ==="
 
 echo "=== Initializing Environment ==="
 module load ml/pytorch
+module load cuda/12.1
 echo "Successfully loaded cluster pytorhc enviornment"
 cd {args.root_dir}
 pip install -e .
 echo "Successfully installed local package"
 
+echo "=== SLURM Info ==="
+echo "SLURM_NODELIST=$SLURM_NODELIST"
+echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
+
+echo "=== Python Cuda Check ==="
 nvidia-smi || echo "No GPUs found"
 python3 -c "
 import torch

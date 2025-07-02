@@ -13,7 +13,7 @@ def main():
     # =============================================
     test_str = "phage-buddy"
     test_num = 42
-    output_dir = "/global/home/users/jonathanngai/main/phllm/data/test_outputs"
+    output_dir = "/global/home/users/jonathanngai/main/phllm/data"
     
     # =============================================
     # SLURM CONFIGURATION
@@ -23,7 +23,7 @@ def main():
     qos = "es_normal"                  # SLURM QOS
     # environment = "env_1"             # Conda environment name
     root_dir = "/global/home/users/jonathanngai/main/phllm"
-    gpu = "gpu:H100:1"
+    gpu = "gpu:1"
     
     # =============================================
     # TEST OPTIONS
