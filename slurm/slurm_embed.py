@@ -20,7 +20,7 @@ class pipe_config():
 
         output_dir = args.output
         self.completion_markers = {
-                1: f"{output_dir}",
+                1: os.path.join(output_dir, ".stage1_complete")
             }
         
         self.stage_names = {
@@ -119,6 +119,7 @@ main_slurm(
 "
 
 echo "Stage 1 completed: $(date)"
+touch {args.output}/.stage1_complete
 """
     
     script_path = os.path.join(run_dir, "stage1_preprocessing.sh")
@@ -196,6 +197,9 @@ def main():
     job_ids = {}
     
     print("Submitting jobs...")
+    for key, path in scripts.items():
+        jobid = submit_job(path)
+        job_ids[key] = jobid
     
     # Submit starting stage
     # Change back to original directory
