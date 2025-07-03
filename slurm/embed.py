@@ -85,13 +85,13 @@ echo "=== Workflow Begins ==="
 python3 -c "
 from phllm.pipeline.main import workflow
 workflow(
-    llm={args.llm}, 
+    llm='{args.llm}', 
     context={args.context_window},
-    strain_in={args.input_strain}, 
-    strain_out={args.output_strain}, 
-    phage_in={args.input_phage}, 
-    phage_out={args.output_phage}, 
-    bacteria={args.name_bact}
+    strain_in='{args.input_strain}', 
+    strain_out='{args.output_strain}', 
+    phage_in='{args.input_phage}', 
+    phage_out='{args.output_phage}', 
+    bacteria='{args.name_bact}'
 )
 "
 echo "=== Workflow Complete ==="
