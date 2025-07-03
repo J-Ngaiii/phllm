@@ -83,8 +83,8 @@ print('Number of GPUs:', torch.cuda.device_count())
 
 echo "=== Workflow Begins ==="
 python3 -c "
-from phllm.pipeline.main import main
-main(
+from phllm.pipeline.main import workflow
+workflow(
     llm={args.llm}, 
     context={args.context_window},
     strain_in={args.input_strain}, 

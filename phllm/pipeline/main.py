@@ -8,7 +8,7 @@ from phllm.config.model_factory import get_model
 from phllm.config.directory_paths import get_paths
 from phllm.extract.chunkers import complete_n_select, extract_embeddings
 
-def main(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False):  
+def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False):  
     # Pulling genomes into dictionaries to load into model
     print("Extracting raw data into dictionaries for processing...")
     ecoli_strains = rt_dicts(path=strain_in, seq_report=True)
@@ -50,6 +50,3 @@ def main(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'e
     # Saving Embeddings to Directory
     save_to_dir(strain_out, embeddings=estrain_embed, pads=estrain_pads, name=bacteria, strn_or_phage='strain')
     save_to_dir(phage_out, embeddings=ephage_embed, pads=ephage_pads, name=bacteria, strn_or_phage='phage')
-
-if __name__ == "__main__":
-    main()
