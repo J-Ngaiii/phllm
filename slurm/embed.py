@@ -59,7 +59,7 @@ def create_workflow(args, run_dir):
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --gres={args.gpu}
-#SBATCH --time=1:00:00
+#SBATCH --time=3:00:00
 #SBATCH --output=logs/stage1_%j.out
 #SBATCH --error=logs/stage1_%j.err
 
