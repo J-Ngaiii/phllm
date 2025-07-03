@@ -81,7 +81,7 @@ print('CUDA available:', torch.cuda.is_available())
 print('Number of GPUs:', torch.cuda.device_count())
 "
 
-echo "=== Test Argument Inputs ==="
+echo "=== Workflow Begins ==="
 python3 -c "
 from phllm.pipeline.main import main
 main(
@@ -94,6 +94,7 @@ main(
     bacteria={args.name_bact}
 )
 "
+echo "=== Workflow Complete ==="
 
 touch {args.output}/workflow_complete.txt
 
