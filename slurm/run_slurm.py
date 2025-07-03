@@ -23,7 +23,8 @@ def main():
     account = "ac_mak"
     partition = "es1"                    # SLURM partition 
     qos = "es_normal"                    # SLURM QOS
-    environment = "env_1"       # Conda environment name
+    # environment = "env_1"       # Conda environment name
+    root_dir = "/global/home/users/jonathanngai/main/phllm"
     gpu = "gpu:H100:1"
 
     
@@ -31,6 +32,9 @@ def main():
     # WORKFLOW PARAMETERS (with defaults)
     # =============================================
     
+    # Script name
+    script_name = "embed.py"
+
     # Configs
     llm = "prokbert"
     context_window = "4000"
@@ -43,7 +47,7 @@ def main():
     # BUILD COMMAND
     # =============================================
     cmd = [
-        "python3", "slurm_embed.py",
+        "python3", script_name,
         
         # Required arguments
         "--input_strain", input_strain,
@@ -61,7 +65,8 @@ def main():
         "--account", account,
         "--partition", partition,
         "--qos", qos,
-        "--environment", environment,
+        "--root_dir", root_dir, 
+        # "--environment", environment,
         "--gpu", gpu
     ]
     
@@ -74,11 +79,18 @@ def main():
     print("=" * 60)
     print("SLURM Workflow Submission")
     print("=" * 60)
-    print(f"Input strain:      {input_strain}")
-    print(f"Input phage:       {input_phage}")
-    print(f"Output directory:  {output_dir}")
     print(f"SLURM account:     {account}")
-    print(f"Environment:       {environment}")
+    print(f"partition:         {partition}")
+    print(f"qos:               {qos}")
+    print(f"gpu:               {gpu}")
+    print()
+
+    print("Directory Paths")
+    print(f"Input strain dir:  {input_strain}")
+    print(f"Input phage dir:   {input_phage}")
+    print(f"Output strain dir: {output_strain}")
+    print(f"Output phage dir:  {output_phage}")
+    print(f"Output directory:  {output_dir}")
     print()
     
     if dry_run:
