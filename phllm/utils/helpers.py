@@ -237,6 +237,7 @@ def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'
             print("Failed to write JSON:", e)
             print("Pads looks like:", type(pads), list(pads)[:3])
     else:
+        print("Beginning saving process... (mode: by-row saving)")
         by_row_embedding_saver(arr=embeddings, pads_per=pads, path=dir_path, name=name)
     
     
