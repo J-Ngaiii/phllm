@@ -110,7 +110,8 @@ def extract_embeddings(
     tokenize_func: callable,
     model: callable,
     out_path: str = './experiments',
-    log_path: str = "./experiment_logs"
+    log_path: str = "./experiment_logs", 
+    test_mode=False
     ):
 
   """This function first tokenizes a dataset then then extract the embedding representations.
@@ -133,49 +134,97 @@ def extract_embeddings(
   model.to(device)
   print(f"Model is on device: {next(model.parameters()).device}")
 
-  for i in range(arr.shape[1]):
-    curr = arr[:, i]
-    assert all([isinstance(seq, str) for seq in curr]), f"Not all elements in inputted array are type str."
+  if test_mode:
+    print("Test mode active, only extracting 3 strain and phage .fna files")
+    for i in range(3):
+      curr = arr[:, i]
+      assert all([isinstance(seq, str) for seq in curr]), f"Not all elements in inputted array are type str."
 
-    # THIS PART IS SPECIFIC TO ProkBERT
-    ds = Dataset.from_dict({"base_pairs": curr})
-    tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
+      # THIS PART IS SPECIFIC TO ProkBERT
+      ds = Dataset.from_dict({"base_pairs": curr})
+      tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
 
-    
+      
 
-    training_args = TrainingArguments(
-    output_dir=out_path,  # Output directory
-    per_device_eval_batch_size=16,  # Batch size for evaluation
-    remove_unused_columns=True,  # Ensure compatibility with input format
-    logging_dir=log_path,  # Logging directory
-    report_to="none",  # No reporting needed
-    )
+      training_args = TrainingArguments(
+      output_dir=out_path,  # Output directory
+      per_device_eval_batch_size=16,  # Batch size for evaluation
+      remove_unused_columns=True,  # Ensure compatibility with input format
+      logging_dir=log_path,  # Logging directory
+      report_to="none",  # No reporting needed
+      )
 
-    # Set up the Trainer for prediction and evaluation
-    trainer = Trainer(
-        model=model,  # Dummy model
-        args=training_args,  # Evaluation arguments
-    )
-    Y_hat = trainer.predict(tokenized)
-    last_hidden_states = Y_hat.predictions[0]
-    representations = last_hidden_states.mean(axis=1) #NOTE: we perform mean pooling across tokens
-    max_embedding_dim = max(max_embedding_dim, representations.shape[1])
-    embeddings.append(representations)
+      # Set up the Trainer for prediction and evaluation
+      trainer = Trainer(
+          model=model,  # Dummy model
+          args=training_args,  # Evaluation arguments
+      )
+      Y_hat = trainer.predict(tokenized)
+      last_hidden_states = Y_hat.predictions[0]
+      representations = last_hidden_states.mean(axis=1) #NOTE: we perform mean pooling across tokens
+      max_embedding_dim = max(max_embedding_dim, representations.shape[1])
+      embeddings.append(representations)
 
-    print(f"{i+1}/{arr.shape[1]} embeddings extracted.")
+      print(f"{i+1}/{arr.shape[1]} embeddings extracted.")
 
-    elapsed = time.time() - prev_time
-    times.append(elapsed)
-    estimated_seconds = np.min(times) * (arr.shape[1] - (i + 1)) # empirically min does okay
-    if estimated_seconds / 60 < 1:
-      estimated_time = np.round(estimated_seconds, decimals=4)
-      print(f"Estimated time till completion: {estimated_time} seconds.")
-    elif estimated_seconds /60**2 > 1:
-      estimated_time = np.round(estimated_seconds / 60**2, decimals=4)
-      print(f"Estimated time till completion: {estimated_time} hours.")
-    else:
-      estimated_time = np.round(estimated_seconds / 60, decimals=4)
-      print(f"Estimated time till completion: {estimated_time} minutes.")
+      elapsed = time.time() - prev_time
+      times.append(elapsed)
+      estimated_seconds = np.min(times) * (arr.shape[1] - (i + 1)) # empirically min does okay
+      if estimated_seconds / 60 < 1:
+        estimated_time = np.round(estimated_seconds, decimals=4)
+        print(f"Estimated time till completion: {estimated_time} seconds.")
+      elif estimated_seconds /60**2 > 1:
+        estimated_time = np.round(estimated_seconds / 60**2, decimals=4)
+        print(f"Estimated time till completion: {estimated_time} hours.")
+      else:
+        estimated_time = np.round(estimated_seconds / 60, decimals=4)
+        print(f"Estimated time till completion: {estimated_time} minutes.")
+
+  else:
+    print("Test mode processing, printing all detected files")
+    for i in range(arr.shape[1]):
+      curr = arr[:, i]
+      assert all([isinstance(seq, str) for seq in curr]), f"Not all elements in inputted array are type str."
+
+      # THIS PART IS SPECIFIC TO ProkBERT
+      ds = Dataset.from_dict({"base_pairs": curr})
+      tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
+
+      
+
+      training_args = TrainingArguments(
+      output_dir=out_path,  # Output directory
+      per_device_eval_batch_size=16,  # Batch size for evaluation
+      remove_unused_columns=True,  # Ensure compatibility with input format
+      logging_dir=log_path,  # Logging directory
+      report_to="none",  # No reporting needed
+      )
+
+      # Set up the Trainer for prediction and evaluation
+      trainer = Trainer(
+          model=model,  # Dummy model
+          args=training_args,  # Evaluation arguments
+      )
+      Y_hat = trainer.predict(tokenized)
+      last_hidden_states = Y_hat.predictions[0]
+      representations = last_hidden_states.mean(axis=1) #NOTE: we perform mean pooling across tokens
+      max_embedding_dim = max(max_embedding_dim, representations.shape[1])
+      embeddings.append(representations)
+
+      print(f"{i+1}/{arr.shape[1]} embeddings extracted.")
+
+      elapsed = time.time() - prev_time
+      times.append(elapsed)
+      estimated_seconds = np.min(times) * (arr.shape[1] - (i + 1)) # empirically min does okay
+      if estimated_seconds / 60 < 1:
+        estimated_time = np.round(estimated_seconds, decimals=4)
+        print(f"Estimated time till completion: {estimated_time} seconds.")
+      elif estimated_seconds /60**2 > 1:
+        estimated_time = np.round(estimated_seconds / 60**2, decimals=4)
+        print(f"Estimated time till completion: {estimated_time} hours.")
+      else:
+        estimated_time = np.round(estimated_seconds / 60, decimals=4)
+        print(f"Estimated time till completion: {estimated_time} minutes.")
 
   # POTENTIAL ISSUE
   out = np.array(embeddings) # Shape: (d, B, E), d for # of divisions, B for number of strains/phages and E for max length of an embedding

@@ -93,6 +93,7 @@ try:
         phage_in='{args.input_phage}', 
         phage_out='{args.output_phage}', 
         bacteria='{args.name_bact}'
+        test_mode={args.test_mode}
     )
 except Exception as e:
     import traceback
@@ -129,6 +130,7 @@ def main():
     parser.add_argument('--llm', default='prokbert', help='Llm model to use for generating embeddings.')
     parser.add_argument('--context_window',type=int, default=4000, help='Context window for the Embedding model.')
     parser.add_argument('--name_bact', help='Name of bacteria.')
+    parser.add_argument('--test_mode', type=bool, help='Puts workflow function in test mode to only extract first 3 phage and strain embeddings.')
     
     # SLURM-specific arguments
     parser.add_argument('--account', default='ac_mak', help='SLURM account (default: ac_mak).')

@@ -5,10 +5,9 @@ import os
 
 from phllm.utils.helpers import rt_dicts, save_to_dir
 from phllm.config.model_factory import get_model
-from phllm.config.directory_paths import get_paths
 from phllm.extract.chunkers import complete_n_select, extract_embeddings
 
-def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False):  
+def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False, test_mode=False):  
     # Pulling genomes into dictionaries to load into model
 
     print("Extracting raw data into dictionaries for processing...")
@@ -47,9 +46,9 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
 
     print("Running embedding model...")
     print("\n")
-    estrain_embed = extract_embeddings(estrain_n_select, context, tokenize_func, model)
+    estrain_embed = extract_embeddings(estrain_n_select, context, tokenize_func, model, test_mode=test_mode)
     print(f"Strain embeddings for {bacteria} extracted, dimensions: {estrain_embed.shape}")
-    ephage_embed = extract_embeddings(ephage_n_select, context, tokenize_func, model)
+    ephage_embed = extract_embeddings(ephage_n_select, context, tokenize_func, model, test_mode=test_mode)
     print(f"Strain embeddings for {bacteria} extracted, dimensions: {ephage_embed.shape}")
 
     # Saving Embeddings to Directory

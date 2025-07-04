@@ -39,6 +39,7 @@ def main():
     llm = "prokbert"
     context_window = "4000"
     name_bact = "ecoli"
+    test_mode = "True"
     
     # Debug options
     dry_run = False                     # Create scripts but don't submit jobs
@@ -60,6 +61,7 @@ def main():
         "--llm", llm,
         "--context_window", context_window,
         "--name_bact", name_bact,
+        "--test_mode", test_mode, 
         
         # SLURM configuration  
         "--account", account,
