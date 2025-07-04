@@ -132,8 +132,6 @@ def extract_embeddings(
     ds = Dataset.from_dict({"base_pairs": curr})
     tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
 
-    
-
     training_args = TrainingArguments(
     output_dir=out_path,  # Output directory
     per_device_eval_batch_size=16,  # Batch size for evaluation
