@@ -45,5 +45,6 @@ jobs:
     
       - name: Debug Check -> Confirm phllm is recognizeable # this one tends to bug so I want to have sys.path info before this runs if it fails
         run: python -c "import phllm; print('phllm is recognized!')"
+      
       - name: Debug Check -> Testing Imports # this one tends to bug so I want to have sys.path info before this runs if it fails
-        run: python -c "python import_test.py"
+        run: python import_test.py
