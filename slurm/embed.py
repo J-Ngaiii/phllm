@@ -94,6 +94,11 @@ workflow(
     bacteria='{args.name_bact}'
 )
 "
+
+echo "Final output directory contents:"
+ls -lh {args.output_strain}
+ls -lh {args.output_phage}
+
 echo "=== Workflow Complete ==="
 
 touch {args.output}/workflow_complete.txt
