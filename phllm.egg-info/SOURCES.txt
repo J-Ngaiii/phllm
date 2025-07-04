@@ -7,7 +7,7 @@ phllm.egg-info/dependency_links.txt
 phllm.egg-info/requires.txt
 phllm.egg-info/top_level.txt
 phllm/config/__init__.py
-phllm/config/directory_paths.py
+phllm/config/config.py
 phllm/config/model_factory.py
 phllm/extract/__init__.py
 phllm/extract/chunkers.py
@@ -15,7 +15,6 @@ phllm/models/ProkBERT.py
 phllm/models/__init__.py
 phllm/pipeline/__init__.py
 phllm/pipeline/main.py
-phllm/pipeline/main_full.py
 phllm/pipeline/mock_main.py
 phllm/preprocess/__init__.py
 phllm/preprocess/selection.py

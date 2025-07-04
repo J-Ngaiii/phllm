@@ -8,6 +8,8 @@ import datetime
 import json
 import os
 
+from phllm.config.config import get_filenames
+
 def load_fna_seq(file_path: str, retain_seq_obj: bool = False, filt = None):
   """
   Returns list of sequences for a given .fna file.
@@ -189,12 +191,14 @@ def by_row_embedding_saver(arr, pads_per, path, name):
     """
     assert len(pads_per) == arr.shape[0], f"Dimension mismatch, pads dict has {len(pads_per)} values and arr has shape {arr.shape[0]} rows."
     os.makedirs(path, exist_ok=True) # ensure path exists
+    print("[DEBUG] Entered by_row_embedding_saver")
 
     for i, (strain_name, pad_count) in enumerate(pads_per.items()): # enumerate creates an iterable returning an index and a tuple with pairs of elems from the iterable being enumerated
         valid_len = arr.shape[1] - pad_count # extract how many embeddings to keep
         valid_embedding = arr[i, :valid_len, :]
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        print(f"Iteration {i}, timestamp {timestamp}, embedding dimension {valid_embedding.shape}")
 
         file_name = f"{name}_{strain_name}_{timestamp}.npy"
         np.save(os.path.join(path, file_name), valid_embedding)
@@ -202,30 +206,40 @@ def by_row_embedding_saver(arr, pads_per, path, name):
         print(f"Saved embeddings for {name} {strain_name} at {file_name}", f"{i+1}/{len(pads_per)}")
     print(f"Finished saving {len(pads_per)} {name} embeddings!\n")
 
-def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'):
+def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain', full_save=False):
+    name = name.lower()
+    strn_or_phage = strn_or_phage.lower()
+    
+    print("[DEBUG] Entered save_to_dir()")
+    print(f"[DEBUG] name: {name}, strn_or_phage: {strn_or_phage}, path: {dir_path}")
+   
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     # Ensure the directory exists
     os.makedirs(dir_path, exist_ok=True)
 
-    # Define filenames based on inputs
-    if name == 'ecoli':
-        if strn_or_phage == 'strain':
-            embedding_name = "estrain_embed"
-            pad_name = "estrain_pads"
-        elif strn_or_phage == 'phage':
-            embedding_name = "ephage_embed"
-            pad_name = "ephage_pads"
-        else:
-            raise ValueError(f"Unknown strn_or_phage type: {strn_or_phage}")
-    else:
-        raise ValueError(f"Unknown name: {name}")
+    if full_save:
+        print("Beginning saving process... (mode: full save)")
+        # Define filenames based on inputs
+        try:
+            embedding_name = get_filenames(bacteria=name, embed_or_pad='embedding_file', strn_or_phage=strn_or_phage)
+            pad_name = get_filenames(bacteria=name, embed_or_pad='padding_file', strn_or_phage=strn_or_phage)
+        except ValueError as e:
+            print("Failed to get names:", e)
 
-    # Save embeddings and padding
-    np.save(os.path.join(dir_path, f'{embedding_name}_{timestamp}.npy'), embeddings)
-    with open(os.path.join(dir_path, f'{pad_name}_{timestamp}.json'), 'w') as f:
-        json.dump(pads, f)
-   
+        # Save embeddings and padding
+        print(f"Saving file '{embedding_name}_{timestamp}.npy' to directory:{dir_path}")
+        np.save(os.path.join(dir_path, f'{embedding_name}_{timestamp}.npy'), embeddings)
+        try:
+            with open(os.path.join(dir_path, f'{pad_name}_{timestamp}.json'), 'w') as f:
+                json.dump(pads, f)
+        except Exception as e:
+            print("Failed to write JSON:", e)
+            print("Pads looks like:", type(pads), list(pads)[:3])
+    else:
+        by_row_embedding_saver(arr=embeddings, pads_per=pads, path=dir_path, name=name)
+    
+    
    
     
     

@@ -1,4 +1,4 @@
-Metadata-Version: 2.4
+Metadata-Version: 2.1
 Name: phllm
 Version: 0.1.0
 Summary: Pipeline for genomic language model embeddings, processing and utilization in predicting phage-host interactions
@@ -23,7 +23,3 @@ Requires-Dist: rich
 Requires-Dist: ruff
 Requires-Dist: setuptools
 Requires-Dist: wheel
-Dynamic: author
-Dynamic: requires-dist
-Dynamic: requires-python
-Dynamic: summary

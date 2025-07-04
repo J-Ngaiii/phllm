@@ -5,35 +5,27 @@ import os
 
 from phllm.utils.helpers import rt_dicts, save_to_dir
 from phllm.config.model_factory import get_model
-from phllm.config.directory_paths import get_paths
 from phllm.extract.chunkers import complete_n_select, extract_embeddings
 
-def main():
-    # Configurations
-    LLM = 'prokbert'
-    CONTEXT_WINDOW = 4000
-    BACTERIA = 'ecoli'
-    ECOLI_STRAINS, ECOLI_PHAGES, ECOLI_STRAIN_EMBEDDINGS, ECOLI_PHAGE_EMBEDDINGS = get_paths(bacteria=BACTERIA)
-    EARLY_EXIT = True
-    
+def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False, test_mode=False):  
     # Pulling genomes into dictionaries to load into model
-    ecoli_strains = rt_dicts(path=ECOLI_STRAINS, seq_report=True)
-    num_ecoli_strains = len(ecoli_strains)
-    ecoli_strains_subdivisions, ecoli_strains_pads = rt_dicts(path=ECOLI_STRAINS, pad_key=True)
 
-    ecoli_phages = rt_dicts(path=ECOLI_PHAGES, strn_or_phg='phage', seq_report=True)
-    num_ecoli_phages = len(ecoli_phages)
-    ecoli_phages_subdivisions, ecoli_phages_pads = rt_dicts(path=ECOLI_PHAGES, strn_or_phg='phage', pad_key=True)
+    print("Extracting raw data into dictionaries for processing...")
+    print("\n")
+    ecoli_strains = rt_dicts(path=strain_in, seq_report=True)
+    ecoli_phages = rt_dicts(path=phage_in, strn_or_phg='phage', seq_report=True)
     
-    if EARLY_EXIT:
+    if early_exit:
         print("Initiating early exit")
         return
     
     # Setting up model
-    tokenizer = get_model(llm=LLM, rv='tokenizer')
-    model = get_model(llm=LLM, rv='model')
+    print("Setting up model...")
+    print("\n")
+    tokenizer = get_model(llm=llm, rv='tokenizer')
+    model = get_model(llm=llm, rv='model')
 
-    def tokenize_func(examples, max_length=CONTEXT_WINDOW):
+    def tokenize_func(examples, max_length=context):
         # batch = examples["base_pairs"]
         # if isinstance(batch[0], list):
         #     batch = [item for sublist in batch for item in sublist]
@@ -47,17 +39,21 @@ def main():
         )
 
     # Chunking and Extracting Embeddings
-    estrain_n_select, estrain_pads = complete_n_select(ecoli_strains, CONTEXT_WINDOW)
-    ephage_n_select, ephage_pads = complete_n_select(ecoli_phages, CONTEXT_WINDOW)
+    print("Dividing data into chunks...")
+    print("\n")
+    estrain_n_select, estrain_pads = complete_n_select(ecoli_strains, context)
+    ephage_n_select, ephage_pads = complete_n_select(ecoli_phages, context)
 
-    estrain_embed = extract_embeddings(estrain_n_select, CONTEXT_WINDOW, tokenize_func, model)
-    print(estrain_embed.shape)
-    ephage_embed = extract_embeddings(ephage_n_select, CONTEXT_WINDOW, tokenize_func, model)
-    print(ephage_embed.shape)
+    print("Running embedding model...")
+    print("\n")
+    estrain_embed = extract_embeddings(estrain_n_select, context, tokenize_func, model, test_mode=test_mode)
+    print(f"Strain embeddings for {bacteria} extracted, dimensions: {estrain_embed.shape}")
+    ephage_embed = extract_embeddings(ephage_n_select, context, tokenize_func, model, test_mode=test_mode)
+    print(f"Strain embeddings for {bacteria} extracted, dimensions: {ephage_embed.shape}")
 
     # Saving Embeddings to Directory
-    save_to_dir(ECOLI_STRAIN_EMBEDDINGS, embeddings=estrain_embed, pads=estrain_pads, name=BACTERIA, strn_or_phage='strain')
-    save_to_dir(ECOLI_PHAGE_EMBEDDINGS, embeddings=ephage_embed, pads=ephage_pads, name=BACTERIA, strn_or_phage='phage')
-
-if __name__ == "__main__":
-    main()
+    print(f"Initiating saving of embeddings...")
+    print("\n")
+    save_to_dir(strain_out, embeddings=estrain_embed, pads=estrain_pads, name=bacteria, strn_or_phage='strain')
+    save_to_dir(phage_out, embeddings=ephage_embed, pads=ephage_pads, name=bacteria, strn_or_phage='phage')
+    print(f"Main workloop finished, exiting function...")

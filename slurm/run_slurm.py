@@ -25,6 +25,7 @@ def main():
     partition = "es1"                    # SLURM partition 
     qos = "es_normal"                    # SLURM QOS
     # environment = "env_1"       # Conda environment name
+    root_dir = "/global/home/users/jonathanngai/main/phllm"
     gpu = "gpu:H100:1"
 
     
@@ -32,10 +33,14 @@ def main():
     # WORKFLOW PARAMETERS (with defaults)
     # =============================================
     
+    # Script name
+    script_name = "embed.py"
+
     # Configs
     llm = "prokbert"
     context_window = "4000"
     name_bact = "ecoli"
+    test_mode = "True"
     
     # Debug options
     dry_run = False                     # Create scripts but don't submit jobs
@@ -44,7 +49,7 @@ def main():
     # BUILD COMMAND
     # =============================================
     cmd = [
-        "python3", "slurm_embed.py",
+        "python3", script_name,
         
         # Required arguments
         "--input_strain", input_strain,
@@ -57,12 +62,13 @@ def main():
         "--llm", llm,
         "--context_window", context_window,
         "--name_bact", name_bact,
+        "--test_mode", test_mode, 
         
         # SLURM configuration  
         "--account", account,
         "--partition", partition,
         "--qos", qos,
-        "--root_dir", root_dir,
+        "--root_dir", root_dir, 
         # "--environment", environment,
         "--gpu", gpu
     ]
@@ -73,30 +79,22 @@ def main():
     # =============================================
     # SUBMIT WORKFLOW
     # =============================================
-    print("""
-    ============================================================
-    SLURM {llm} Embedding Workflow Submission
-    ============================================================
-    LLM Model:         {llm}
-    Context Window:    {context}
-    Bacteria:          {bact}
-    SLURM account:     {account}
-    Partition:         {partition}
-    qos:               {qos}
-    GPU:               {gpu}
+    print("=" * 60)
+    print("SLURM Workflow Submission")
+    print("=" * 60)
+    print(f"SLURM account:     {account}")
+    print(f"partition:         {partition}")
+    print(f"qos:               {qos}")
+    print(f"gpu:               {gpu}")
+    print()
 
-    Submitting workflow with command:
-    {command}
-    """.format(
-        llm=llm,
-        context=context_window,
-        bact=name_bact, 
-        account=account,
-        partition=partition,
-        qos=qos, 
-        gpu=gpu, 
-        command="python3 slurm_embed.py " + " ".join(sys.argv[1:])
-    ))
+    print("Directory Paths")
+    print(f"Input strain dir:  {input_strain}")
+    print(f"Input phage dir:   {input_phage}")
+    print(f"Output strain dir: {output_strain}")
+    print(f"Output phage dir:  {output_phage}")
+    print(f"Output directory:  {output_dir}")
+    print()
     
     if dry_run:
         print("🧪 DRY RUN MODE - Scripts will be created but not submitted")
