@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from typing import Dict
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime # change
 import json
 import os
 
@@ -213,7 +213,11 @@ def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'
     print("[DEBUG] Entered save_to_dir()")
     print(f"[DEBUG] name: {name}, strn_or_phage: {strn_or_phage}, path: {dir_path}")
    
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    except Exception as e:
+        print(f"[ERROR] Failed to parse datetime. Using fallback. Exception: {e}")
+        timestamp = 'NULL'
 
     if full_save:
         print("Beginning saving process... (mode: full save)")
