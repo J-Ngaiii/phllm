@@ -10,7 +10,9 @@ from phllm.extract.chunkers import complete_n_select, extract_embeddings
 
 def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False):  
     # Pulling genomes into dictionaries to load into model
+
     print("Extracting raw data into dictionaries for processing...")
+    print("\n")
     ecoli_strains = rt_dicts(path=strain_in, seq_report=True)
     ecoli_phages = rt_dicts(path=phage_in, strn_or_phg='phage', seq_report=True)
     
@@ -20,6 +22,7 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     
     # Setting up model
     print("Setting up model...")
+    print("\n")
     tokenizer = get_model(llm=llm, rv='tokenizer')
     model = get_model(llm=llm, rv='model')
 
@@ -38,15 +41,20 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
 
     # Chunking and Extracting Embeddings
     print("Dividing data into chunks...")
+    print("\n")
     estrain_n_select, estrain_pads = complete_n_select(ecoli_strains, context)
     ephage_n_select, ephage_pads = complete_n_select(ecoli_phages, context)
 
     print("Running embedding model...")
+    print("\n")
     estrain_embed = extract_embeddings(estrain_n_select, context, tokenize_func, model)
     print(f"Strain embeddings for {bacteria} extracted, dimensions: {estrain_embed.shape}")
     ephage_embed = extract_embeddings(ephage_n_select, context, tokenize_func, model)
     print(f"Strain embeddings for {bacteria} extracted, dimensions: {ephage_embed.shape}")
 
     # Saving Embeddings to Directory
+    print(f"Initiating saving of embeddings...")
+    print("\n")
     save_to_dir(strain_out, embeddings=estrain_embed, pads=estrain_pads, name=bacteria, strn_or_phage='strain')
     save_to_dir(phage_out, embeddings=ephage_embed, pads=ephage_pads, name=bacteria, strn_or_phage='phage')
+    print(f"Main workloop finished, exiting function...")

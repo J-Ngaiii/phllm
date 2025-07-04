@@ -222,6 +222,7 @@ def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'
         raise ValueError(f"Unknown name: {name}")
 
     # Save embeddings and padding
+    print(f"Saving file '{embedding_name}_{timestamp}.npy' to directory:{dir_path}")
     np.save(os.path.join(dir_path, f'{embedding_name}_{timestamp}.npy'), embeddings)
     with open(os.path.join(dir_path, f'{pad_name}_{timestamp}.json'), 'w') as f:
         json.dump(pads, f)
