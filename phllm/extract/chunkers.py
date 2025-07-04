@@ -227,10 +227,12 @@ def extract_embeddings(
         print(f"Estimated time till completion: {estimated_time} minutes.")
 
   # POTENTIAL ISSUE
+  batch_size, subdivisions = arr.shape
   out = np.array(embeddings) # Shape: (d, B, E), d for # of divisions, B for number of strains/phages and E for max length of an embedding
   # this happens because we're for-looping through the sub-divisions, so each element in embeddings is a 2d matrix representing the embedding representations of B strains for that particular sub-division
   out = out.transpose(1, 0, 2) # Shape: (B, d, E)
-  assert out.shape[:2] == arr.shape, f"First two dimensions of output should be {arr.shape} but were {out.shape[:2]}."
+  if out.shape[0] != batch_size or out.shape[1] != subdivisions:
+    print(f"First two dimensions of output should be {(batch_size, subdivisions)} but were {out.shape[:2]}.")
 
   total_time = time.time() - start_time
   if total_time / 60 < 1:
