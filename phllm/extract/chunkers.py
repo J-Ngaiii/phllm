@@ -114,11 +114,58 @@ def extract_embeddings(
     test_mode=False
     ):
 
-  """This function first tokenizes a dataset then then extract the embedding representations.
-  Given that the inputted array is B x d columns for d subdivisions, each of size n, of the original genomes of all B strains,
-  this function outputs a B x d x E matrix where each column is a embedding representation for one of the subdivisions.
-  So you have B strains, d embeddings and the max length of an embedding is E values long."""
+  """
+  This function first tokenizes a dataset then then extract the embedding representations.
+  Takes in an array of dimensions B x d columns: B observations with d subdivision per observation and each element being a string of size n. 
+  Outputs a B x d x E tensor for B observations, d subdivisions and a embedding vector encoding semantic value of E per subdivision per observation.
+  E is determined by whatever embedding model is being used.
+  """
 
+  def extract(index, embed_arr):
+    """Mutatively appends embed_arr with the the result of passing the ith chunk (arr[:, i]) through the embedding model."""
+    i = index
+    curr = arr[:, i]
+    assert all([isinstance(seq, str) for seq in curr]), f"Not all elements in inputted array are type str."
+
+    # THIS PART IS SPECIFIC TO ProkBERT
+    ds = Dataset.from_dict({"base_pairs": curr})
+    tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
+
+    
+
+    training_args = TrainingArguments(
+    output_dir=out_path,  # Output directory
+    per_device_eval_batch_size=16,  # Batch size for evaluation
+    remove_unused_columns=True,  # Ensure compatibility with input format
+    logging_dir=log_path,  # Logging directory
+    report_to="none",  # No reporting needed
+    )
+
+    # Set up the Trainer for prediction and evaluation
+    trainer = Trainer(
+        model=model,  # Dummy model
+        args=training_args,  # Evaluation arguments
+    )
+    Y_hat = trainer.predict(tokenized)
+    last_hidden_states = Y_hat.predictions[0]
+    representations = last_hidden_states.mean(axis=1) #NOTE: we perform mean pooling across tokens
+    max_embedding_dim = max(max_embedding_dim, representations.shape[1])
+    embed_arr.append(representations)
+
+    print(f"{i+1}/{arr.shape[1]} embeddings extracted.")
+
+    elapsed = time.time() - prev_time
+    times.append(elapsed)
+    estimated_seconds = np.min(times) * (arr.shape[1] - (i + 1)) # empirically min does okay
+    if estimated_seconds / 60 < 1:
+      estimated_time = np.round(estimated_seconds, decimals=4)
+      print(f"Estimated time till completion: {estimated_time} seconds.")
+    elif estimated_seconds /60**2 > 1:
+      estimated_time = np.round(estimated_seconds / 60**2, decimals=4)
+      print(f"Estimated time till completion: {estimated_time} hours.")
+    else:
+      estimated_time = np.round(estimated_seconds / 60, decimals=4)
+      print(f"Estimated time till completion: {estimated_time} minutes.")
 
   embeddings = []
   max_embedding_dim = 0
@@ -137,102 +184,23 @@ def extract_embeddings(
   if test_mode:
     print("Test mode active, only extracting 3 strain and phage .fna files")
     for i in range(3):
-      curr = arr[:, i]
-      assert all([isinstance(seq, str) for seq in curr]), f"Not all elements in inputted array are type str."
-
-      # THIS PART IS SPECIFIC TO ProkBERT
-      ds = Dataset.from_dict({"base_pairs": curr})
-      tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
-
-      
-
-      training_args = TrainingArguments(
-      output_dir=out_path,  # Output directory
-      per_device_eval_batch_size=16,  # Batch size for evaluation
-      remove_unused_columns=True,  # Ensure compatibility with input format
-      logging_dir=log_path,  # Logging directory
-      report_to="none",  # No reporting needed
-      )
-
-      # Set up the Trainer for prediction and evaluation
-      trainer = Trainer(
-          model=model,  # Dummy model
-          args=training_args,  # Evaluation arguments
-      )
-      Y_hat = trainer.predict(tokenized)
-      last_hidden_states = Y_hat.predictions[0]
-      representations = last_hidden_states.mean(axis=1) #NOTE: we perform mean pooling across tokens
-      max_embedding_dim = max(max_embedding_dim, representations.shape[1])
-      embeddings.append(representations)
-
-      print(f"{i+1}/{arr.shape[1]} embeddings extracted.")
-
-      elapsed = time.time() - prev_time
-      times.append(elapsed)
-      estimated_seconds = np.min(times) * (arr.shape[1] - (i + 1)) # empirically min does okay
-      if estimated_seconds / 60 < 1:
-        estimated_time = np.round(estimated_seconds, decimals=4)
-        print(f"Estimated time till completion: {estimated_time} seconds.")
-      elif estimated_seconds /60**2 > 1:
-        estimated_time = np.round(estimated_seconds / 60**2, decimals=4)
-        print(f"Estimated time till completion: {estimated_time} hours.")
-      else:
-        estimated_time = np.round(estimated_seconds / 60, decimals=4)
-        print(f"Estimated time till completion: {estimated_time} minutes.")
+      extract(index=i, embed_arr=embeddings)
 
   else:
-    print("Test mode processing, printing all detected files")
     for i in range(arr.shape[1]):
-      curr = arr[:, i]
-      assert all([isinstance(seq, str) for seq in curr]), f"Not all elements in inputted array are type str."
-
-      # THIS PART IS SPECIFIC TO ProkBERT
-      ds = Dataset.from_dict({"base_pairs": curr})
-      tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
-
-      
-
-      training_args = TrainingArguments(
-      output_dir=out_path,  # Output directory
-      per_device_eval_batch_size=16,  # Batch size for evaluation
-      remove_unused_columns=True,  # Ensure compatibility with input format
-      logging_dir=log_path,  # Logging directory
-      report_to="none",  # No reporting needed
-      )
-
-      # Set up the Trainer for prediction and evaluation
-      trainer = Trainer(
-          model=model,  # Dummy model
-          args=training_args,  # Evaluation arguments
-      )
-      Y_hat = trainer.predict(tokenized)
-      last_hidden_states = Y_hat.predictions[0]
-      representations = last_hidden_states.mean(axis=1) #NOTE: we perform mean pooling across tokens
-      max_embedding_dim = max(max_embedding_dim, representations.shape[1])
-      embeddings.append(representations)
-
-      print(f"{i+1}/{arr.shape[1]} embeddings extracted.")
-
-      elapsed = time.time() - prev_time
-      times.append(elapsed)
-      estimated_seconds = np.min(times) * (arr.shape[1] - (i + 1)) # empirically min does okay
-      if estimated_seconds / 60 < 1:
-        estimated_time = np.round(estimated_seconds, decimals=4)
-        print(f"Estimated time till completion: {estimated_time} seconds.")
-      elif estimated_seconds /60**2 > 1:
-        estimated_time = np.round(estimated_seconds / 60**2, decimals=4)
-        print(f"Estimated time till completion: {estimated_time} hours.")
-      else:
-        estimated_time = np.round(estimated_seconds / 60, decimals=4)
-        print(f"Estimated time till completion: {estimated_time} minutes.")
+      extract(index=i)
 
   # POTENTIAL ISSUE
   batch_size, subdivisions = arr.shape
-  out = np.array(embeddings) # Shape: (d, B, E), d for # of divisions, B for number of strains/phages and E for max length of an embedding
+  out = np.array(embeddings, embed_arr=embeddings) # Shape: (d, B, E), d for # of divisions, B for number of strains/phages and E for max length of an embedding
   # this happens because we're for-looping through the sub-divisions, so each element in embeddings is a 2d matrix representing the embedding representations of B strains for that particular sub-division
   out = out.transpose(1, 0, 2) # Shape: (B, d, E)
-  if out.shape[0] != batch_size or out.shape[1] != subdivisions:
-    print(f"First two dimensions of output should be {(batch_size, subdivisions)} but were {out.shape[:2]}.")
+  if test_mode:
+      if out.shape[0] != batch_size or out.shape[1] != 3:
+        print(f"First two dimensions of output should be {(batch_size, 3)} but were {out.shape[:2]}.")
+  else:
+    if out.shape[0] != batch_size or out.shape[1] != subdivisions:
+      print(f"First two dimensions of output should be {(batch_size, subdivisions)} but were {out.shape[:2]}.")
 
   total_time = time.time() - start_time
   if total_time / 60 < 1:
