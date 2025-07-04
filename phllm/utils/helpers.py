@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from typing import Dict
 from pathlib import Path
-import datetime
+from datetime import datetime
 import json
 import os
 
@@ -214,9 +214,6 @@ def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'
     print(f"[DEBUG] name: {name}, strn_or_phage: {strn_or_phage}, path: {dir_path}")
    
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-    # Ensure the directory exists
-    os.makedirs(dir_path, exist_ok=True)
 
     if full_save:
         print("Beginning saving process... (mode: full save)")
