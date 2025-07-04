@@ -83,7 +83,7 @@ print('Number of GPUs:', torch.cuda.device_count())
 "
 
 echo "=== Workflow Begins ==="
-python3 -c "
+echo "
 try:
     from phllm.pipeline.main import workflow
     workflow(
@@ -93,14 +93,16 @@ try:
         strain_out='{args.output_strain}', 
         phage_in='{args.input_phage}', 
         phage_out='{args.output_phage}', 
-        bacteria='{args.name_bact}', 
+        bacteria='{args.name_bact}',
         test_mode={args.test_mode}
     )
 except Exception as e:
     import traceback
     print('[ERROR] Workflow failed:')
     traceback.print_exc()
-"
+" > temp_script.py
+
+python3 temp_script.py
 
 echo "Final output directory contents:"
 ls -lh {args.output_strain}
