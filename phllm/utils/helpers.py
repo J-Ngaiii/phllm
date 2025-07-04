@@ -203,6 +203,12 @@ def by_row_embedding_saver(arr, pads_per, path, name):
     print(f"Finished saving {len(pads_per)} {name} embeddings!\n")
 
 def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'):
+    name = name.lower()
+    strn_or_phage = strn_or_phage.lower()
+    
+    print("[DEBUG] Entered save_to_dir()")
+    print(f"[DEBUG] name: {name}, strn_or_phage: {strn_or_phage}, path: {dir_path}")
+   
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     # Ensure the directory exists
@@ -217,9 +223,13 @@ def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'
             embedding_name = "ephage_embed"
             pad_name = "ephage_pads"
         else:
-            raise ValueError(f"Unknown strn_or_phage type: {strn_or_phage}")
+            msg = f"Unknown strn_or_phage type: {strn_or_phage}"
+            print(msg)
+            raise ValueError(msg)
     else:
-        raise ValueError(f"Unknown name: {name}")
+        msg = f"Unknown name: {name}"
+        print(msg)
+        raise ValueError(msg)
 
     # Save embeddings and padding
     print(f"Saving file '{embedding_name}_{timestamp}.npy' to directory:{dir_path}")
