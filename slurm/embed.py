@@ -71,6 +71,7 @@ module load ml/pytorch
 echo "Successfully loaded cluster pytorhc enviornment"
 cd {args.root_dir}
 pip install -e .
+pip list phllm
 echo "Successfully installed local package"
 
 echo "=== GPU info ==="
@@ -84,7 +85,7 @@ print('Number of GPUs:', torch.cuda.device_count())
 echo "=== Workflow Begins ==="
 python3 -c "
 try:
-    from phllm.pipeline.main_local import workflow
+    from phllm.pipeline.main import workflow
     workflow(
         llm='{args.llm}', 
         context={args.context_window},
@@ -92,7 +93,7 @@ try:
         strain_out='{args.output_strain}', 
         phage_in='{args.input_phage}', 
         phage_out='{args.output_phage}', 
-        bacteria='{args.name_bact}'
+        bacteria='{args.name_bact}', 
         test_mode={args.test_mode}
     )
 except Exception as e:
