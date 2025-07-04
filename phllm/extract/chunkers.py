@@ -123,6 +123,7 @@ def extract_embeddings(
 
   def extract(index, embed_arr):
     """Mutatively appends embed_arr with the the result of passing the ith chunk (arr[:, i]) through the embedding model."""
+    nonlocal max_embedding_dim, prev_time, times
     i = index
     curr = arr[:, i]
     assert all([isinstance(seq, str) for seq in curr]), f"Not all elements in inputted array are type str."
@@ -148,6 +149,11 @@ def extract_embeddings(
     )
     Y_hat = trainer.predict(tokenized)
     last_hidden_states = Y_hat.predictions[0]
+
+    if last_hidden_states is None:
+      raise RuntimeError(f"[ERROR] No output from model on chunk {index}")
+    # test
+    
     representations = last_hidden_states.mean(axis=1) #NOTE: we perform mean pooling across tokens
     max_embedding_dim = max(max_embedding_dim, representations.shape[1])
     embed_arr.append(representations)
@@ -169,9 +175,6 @@ def extract_embeddings(
 
   embeddings = []
   max_embedding_dim = 0
-
-  print("==============", "BEGINNING EMBEDDING EXTRACTION", "==============")
-
   times = []
   prev_time = time.time()
   start_time = prev_time
@@ -181,26 +184,27 @@ def extract_embeddings(
   model.to(device)
   print(f"Extract_Embeddings Cuda Check:\nModel is on device: {next(model.parameters()).device}")
 
-  if test_mode:
-    print("Test mode active, only extracting 3 strain and phage .fna files")
-    for i in range(3):
-      extract(index=i, embed_arr=embeddings)
+  print("==============", "BEGINNING EMBEDDING EXTRACTION", "==============")
 
-  else:
-    for i in range(arr.shape[1]):
-      extract(index=i)
+  try:
+    if test_mode:
+        print("[DEBUG] Running in TEST MODE")
+        for i in range(min(3, arr.shape[1])):
+            extract(index=i, embed_arr=embeddings)
+    else:
+        for i in range(arr.shape[1]):
+            extract(index=i, embed_arr=embeddings)
 
-  # POTENTIAL ISSUE
-  batch_size, subdivisions = arr.shape
-  out = np.array(embeddings, embed_arr=embeddings) # Shape: (d, B, E), d for # of divisions, B for number of strains/phages and E for max length of an embedding
-  # this happens because we're for-looping through the sub-divisions, so each element in embeddings is a 2d matrix representing the embedding representations of B strains for that particular sub-division
-  out = out.transpose(1, 0, 2) # Shape: (B, d, E)
-  if test_mode:
-      if out.shape[0] != batch_size or out.shape[1] != 3:
-        print(f"First two dimensions of output should be {(batch_size, 3)} but were {out.shape[:2]}.")
-  else:
-    if out.shape[0] != batch_size or out.shape[1] != subdivisions:
-      print(f"First two dimensions of output should be {(batch_size, subdivisions)} but were {out.shape[:2]}.")
+    out = np.array(embeddings)
+    out = out.transpose(1, 0, 2)
+
+    if out.shape[0] != arr.shape[0] or out.shape[1] != (3 if test_mode else arr.shape[1]):
+        print(f"[WARN] Output shape mismatch: expected {(arr.shape[0], 3 if test_mode else arr.shape[1])}, got {out.shape[:2]}")
+  except Exception as e:
+      import traceback
+      print("[FATAL ERROR] Embedding extraction failed:")
+      traceback.print_exc()
+      return None
 
   total_time = time.time() - start_time
   if total_time / 60 < 1:
