@@ -204,6 +204,7 @@ def by_row_embedding_saver(arr, pads_per, path, name):
         np.save(os.path.join(path, file_name), valid_embedding)
 
         print(f"Saved embeddings for {name} {strain_name} at {file_name}", f"{i+1}/{len(pads_per)}")
+        print(f"Embedding as numpy array:\n{valid_embedding}")
     print(f"Finished saving {len(pads_per)} {name} embeddings!\n")
 
 def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain', full_save=False):

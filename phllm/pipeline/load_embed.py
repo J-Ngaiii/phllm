@@ -21,6 +21,7 @@ def load_npy(filename, phg_or_strn=None, path=None, allow_pickle=True) -> np.nda
     bacterium_paths = config[bacterium]
     
     if phg_or_strn in bacterium_paths:
+        print(f"Printing: {phg_or_strn}")
         path = bacterium_paths[phg_or_strn]
     if path is None:
         for t in bacterium_paths:
