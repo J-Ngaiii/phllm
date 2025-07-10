@@ -12,8 +12,8 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
 
     print("Extracting raw data into dictionaries for processing...")
     print("\n")
-    ecoli_strains = rt_dicts(path=strain_in, seq_report=True)
-    ecoli_phages = rt_dicts(path=phage_in, strn_or_phg='phage', seq_report=True)
+    ecoli_strains = rt_dicts(path=strain_in, seq_report=True, test_mode=test_mode)
+    ecoli_phages = rt_dicts(path=phage_in, strn_or_phg='phage', seq_report=True, test_mode=test_mode)
     
     if early_exit:
         print("Initiating early exit")
