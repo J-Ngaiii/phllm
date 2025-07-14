@@ -1,0 +1,3 @@
+[submodule "external/evo2"]
+	path = external/evo2
+	url = git@github.com:ArcInstitute/evo2.git
