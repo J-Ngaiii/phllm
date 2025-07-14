@@ -1,11 +1,12 @@
 import numpy as np
+from typing import Tuple, Dict, Union
 from datasets import Dataset
 from transformers import TrainingArguments, Trainer
 import torch
 
 import time
 
-def complete_n_select(d: dict, n: int, rt_array=True, debug=False) -> np.ndarray:
+def complete_n_select(d: dict, n: int, rt_array=True, debug=False) -> Tuple[np.ndarray | Dict, Dict]:
   """
   Subdivides sequences from a dictionary of DNA base pair strings into fixed-length sub-samples.
 
@@ -98,16 +99,145 @@ def complete_n_select(d: dict, n: int, rt_array=True, debug=False) -> np.ndarray
     out = np.array(padded, dtype=object).reshape((len(d), -1))
     # assert len(out.shape) == 2, f"Output has {len(out.shape)} dimension but should have 2 dimensions."
     # assert out.shape[0] == len(dict), f"Output has {out.shape[0]} rows but should {len(dict)}."
-    return out, pads_per_val
+    return (out, pads_per_val)
 
   else:
     sub_samples = map(lambda seq: _n_subdivide(seq, n, False), full_seqs)
-    return dict(list(zip(d.keys(), sub_samples))), pads_per_val
+    return (dict(list(zip(d.keys(), sub_samples))), pads_per_val)
 
-def extract_embeddings(
+def extract_embeddings_prokbert(
     arr: list[list],
     n: int,
-    tokenize_func: callable,
+    tokenizer: callable,
+    model: callable,
+    out_path: str = './experiments',
+    log_path: str = "./experiment_logs", 
+    test_mode=False
+    ):
+
+  """
+  This function first tokenizes a dataset then then extract the embedding representations.
+  Takes in an array of dimensions B x d columns: B observations with d subdivision per observation and each element being a string of size n. 
+  Outputs a B x d x E tensor for B observations, d subdivisions and a embedding vector encoding semantic value of E per subdivision per observation.
+  E is determined by whatever embedding model is being used.
+  """
+  arr = np.array(arr) # incasd we're given a nested list
+
+  def extract(index, embed_arr):
+    """Mutatively appends embed_arr with the the result of passing the ith chunk (arr[:, i]) through the embedding model."""
+    nonlocal max_embedding_dim, prev_time, times
+    i = index
+    curr = arr[:, i]
+    assert all([isinstance(seq, str) for seq in curr]), f"Not all elements in inputted array are type str."
+
+    # THIS PART IS SPECIFIC TO ProkBERT
+    ds = Dataset.from_dict({"base_pairs": curr})
+
+    def tokenize_func(examples, max_length=n):
+        # batch = examples["base_pairs"]
+        # if isinstance(batch[0], list):
+        #     batch = [item for sublist in batch for item in sublist]
+
+        return tokenizer(
+            examples["base_pairs"],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
+            padding=True,
+            truncation=True,
+            max_length=max_length,
+            return_tensors="pt"# Set the maximum sequence length if needed
+        )
+    
+    tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
+
+    training_args = TrainingArguments(
+    output_dir=out_path,  # Output directory
+    per_device_eval_batch_size=16,  # Batch size for evaluation
+    remove_unused_columns=True,  # Ensure compatibility with input format
+    logging_dir=log_path,  # Logging directory
+    report_to="none",  # No reporting needed
+    )
+
+    # Set up the Trainer for prediction and evaluation
+    trainer = Trainer(
+        model=model,  # Dummy model
+        args=training_args,  # Evaluation arguments
+    )
+    Y_hat = trainer.predict(tokenized)
+    last_hidden_states = Y_hat.predictions[0]
+
+    if last_hidden_states is None:
+      raise RuntimeError(f"[ERROR] No output from model on chunk {index}")
+    # test
+    
+    representations = last_hidden_states.mean(axis=1) #NOTE: we perform mean pooling across tokens
+    max_embedding_dim = max(max_embedding_dim, representations.shape[1])
+    embed_arr.append(representations)
+
+    print(f"{i+1}/{arr.shape[1]} embeddings extracted.")
+
+    elapsed = time.time() - prev_time
+    times.append(elapsed)
+    estimated_seconds = np.min(times) * (arr.shape[1] - (i + 1)) # empirically min does okay
+    if estimated_seconds / 60 < 1:
+      estimated_time = np.round(estimated_seconds, decimals=4)
+      print(f"Estimated time till completion: {estimated_time} seconds.")
+    elif estimated_seconds /60**2 > 1:
+      estimated_time = np.round(estimated_seconds / 60**2, decimals=4)
+      print(f"Estimated time till completion: {estimated_time} hours.")
+    else:
+      estimated_time = np.round(estimated_seconds / 60, decimals=4)
+      print(f"Estimated time till completion: {estimated_time} minutes.")
+
+  embeddings = []
+  max_embedding_dim = 0
+  times = []
+  prev_time = time.time()
+  start_time = prev_time
+
+  # Setup Cuda
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  model.to(device)
+  print(f"Extract_Embeddings Cuda Check:\nModel is on device: {next(model.parameters()).device}")
+
+  print("==============", "BEGINNING EMBEDDING EXTRACTION", "==============")
+
+  try:
+    if test_mode:
+        print("[DEBUG] Running in TEST MODE")
+        for i in range(min(3, arr.shape[1])):
+            extract(index=i, embed_arr=embeddings)
+    else:
+        for i in range(arr.shape[1]):
+            extract(index=i, embed_arr=embeddings)
+
+    out = np.array(embeddings)
+    out = out.transpose(1, 0, 2)
+
+    if out.shape[0] != arr.shape[0] or out.shape[1] != (3 if test_mode else arr.shape[1]):
+        print(f"[WARN] Output shape mismatch: expected {(arr.shape[0], 3 if test_mode else arr.shape[1])}, got {out.shape[:2]}")
+  except Exception as e:
+      import traceback
+      print("[FATAL ERROR] Embedding extraction failed:")
+      traceback.print_exc()
+      return None
+
+  total_time = time.time() - start_time
+  if total_time / 60 < 1:
+    estimated_time = np.round(total_time, decimals=4)
+    print(f"Total time taken: {estimated_time} seconds.")
+  elif total_time / 60**2 > 1:
+    estimated_time = np.round(total_time / 60**2, decimals=4)
+    print(f"Total time taken: {estimated_time} hours.")
+  else:
+    estimated_time = np.round(total_time / 60, decimals=4)
+    print(f"Total time taken: {estimated_time} minutes.")
+  print("==============", "END OF EMBEDDING EXTRACTION", "==============")
+
+  return out
+
+def extract_embeddings_evo2(
+    arr: list[list],
+    n: int,
+    tokenizer: callable,
     model: callable,
     out_path: str = './experiments',
     log_path: str = "./experiment_logs", 
@@ -217,4 +347,5 @@ def extract_embeddings(
   print("==============", "END OF EMBEDDING EXTRACTION", "==============")
 
   return out
+   
 

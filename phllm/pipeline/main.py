@@ -4,8 +4,8 @@ from transformers import TrainingArguments, Trainer
 import os
 
 from phllm.utils.helpers import rt_dicts, save_to_dir
-from phllm.config.model_factory import get_model
-from phllm.extract.chunkers import complete_n_select, extract_embeddings
+from phllm.config.model_factory import get_model, get_embedding_extractor
+from phllm.extract.chunkers import complete_n_select
 
 def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False, test_mode=False):  
     # Pulling genomes into dictionaries to load into model
@@ -25,19 +25,6 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     tokenizer = get_model(llm=llm, rv='tokenizer')
     model = get_model(llm=llm, rv='model')
 
-    def tokenize_func(examples, max_length=context):
-        # batch = examples["base_pairs"]
-        # if isinstance(batch[0], list):
-        #     batch = [item for sublist in batch for item in sublist]
-
-        return tokenizer(
-            examples["base_pairs"],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
-            padding=True,
-            truncation=True,
-            max_length=max_length,
-            return_tensors="pt"# Set the maximum sequence length if needed
-        )
-
     # Chunking and Extracting Embeddings
     print("Dividing data into chunks...")
     print("\n")
@@ -48,11 +35,12 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     print("\n")
 
     print(f"Dimensions of chunked strain array: {estrain_n_select.shape}")
-    estrain_embed = extract_embeddings(estrain_n_select, context, tokenize_func, model, test_mode=test_mode)
+    embedding_extractor = get_embedding_extractor(llm=llm)
+    estrain_embed = embedding_extractor(estrain_n_select, context, tokenizer, model, test_mode=test_mode)
     print(f"Strain embeddings for {bacteria} extracted, dimensions: {estrain_embed.shape}")
 
     print(f"Dimensions of chunked phage array: {ephage_n_select.shape}")
-    ephage_embed = extract_embeddings(ephage_n_select, context, tokenize_func, model, test_mode=test_mode)
+    ephage_embed = embedding_extractor(ephage_n_select, context, tokenizer, model, test_mode=test_mode)
     print(f"Strain embeddings for {bacteria} extracted, dimensions: {ephage_embed.shape}")
 
     # Saving Embeddings to Directory

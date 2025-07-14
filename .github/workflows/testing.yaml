@@ -40,8 +40,8 @@ jobs:
         run: | 
           git submodule update --init --recursive
           cd external/evo2
+          pip install .
  
-      
       # Debugs
       - name: Debug Check -> Disply Installed Packages
         run: pip list

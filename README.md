@@ -12,3 +12,7 @@ This repo contains code to flow genome sequences into genomic language models (g
 - If trying to run GPUs consider also running `conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia` so your enviornment has a CUDA. 
     - note that the cuda version doesn't have to be 11.8 it should be whatever matches with your cluster
     - Lawrenceium's `module avail ml/pytorch` comes with two modules at version 11.7 (`ml/pytorch/2.0.1-py3.11.7` and `ml/pytorch/2.3.1-py3.11.7 (D)`)
+
+# How test mode works
+- Constrains rt_dicts to only return 3 strains/phages
+- Constrains extract_embeddings to only look at the first 3 divisions for all strains/phages in a batch (which will just be 3 strains/phages if rt_dicts is put into test mode)

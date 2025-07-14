@@ -54,7 +54,8 @@ def load_fna(
     pad_key = False,
     plots = False, 
     n_subdivision = 4000, 
-    test_mode = False
+    test_mode = False, 
+    test_count = 3
     ) -> Dict[str, np.ndarray]:
     """
     Load all sequences from a directory (.'file_type' files, default is .fna).
@@ -75,6 +76,8 @@ def load_fna(
       assert isinstance(debug, str), f"If debug is not false it must be a string specifying debugging output."
       assert debug in ['seq_num_list', 'num_base_pairs'], f"Debug mode asked to return {debug}, but can only return 'seq_num_list' or 'num_base_pairs'."
 
+    if test_mode:
+        print(f"Function in test mode, terminating after finding {test_count} or less {file_type} files.")
     
     strain_dir = Path(strain_dir)
     if not strain_dir.exists():
@@ -88,7 +91,7 @@ def load_fna(
         num_base_pairs = []
         max_num_base_pairs = 0
         count = 0
-        for file_path in strain_dir.glob('*' + file_type):
+        for file_path in sorted(strain_dir.glob('*' + file_type)):
             identifier = file_path.stem  # filename without extension
             print('=============', 'Parsing: ', identifier, '=============')
             seq_list = load_fna_seq(file_path, retain_seq_obj, filt)
@@ -105,10 +108,11 @@ def load_fna(
 
             strains[identifier] = seq_list
 
-            if test_mode and count == 2:
-                print(f'Loading function in test mode, terminating parsing')
-                break
             count += 1
+            if test_mode and count == test_count:
+                print(f'rt_dicts test mode active: {test_count} files founds, testing complete!')
+                break
+            
 
 
         print(f"Loaded {len(strains)} {strn_or_phg}s from {strain_dir}")
@@ -140,7 +144,7 @@ def load_fna(
         num_base_pairs = []
         max_num_base_pairs = 0
         count = 0
-        for file_path in strain_dir.glob('*' + file_type):
+        for file_path in sorted(strain_dir.glob('*' + file_type)):
             identifier = file_path.stem  # filename without extension
             seq_list = load_fna_seq(file_path, retain_seq_obj, filt)
             seq_num_list.append(len(seq_list))
@@ -153,10 +157,10 @@ def load_fna(
 
             strains[identifier] = seq_list
 
-            if test_mode and count == 2:
-                print(f'Loading function in test mode, terminating parsing')
-                break
             count += 1
+            if test_mode and count == test_count:
+                print(f'rt_dicts test mode active: {test_count} files founds, testing complete!')
+                break
 
         if debug == 'seq_num_list':
             print(f"Returning 'seq_num_list'")
@@ -175,7 +179,7 @@ def load_fna(
 
     return strains
 
-def rt_dicts(path = None, microbe: str = 'e_coli', strn_or_phg: str = 'strain', seq_report=False, debug=False, pad_key = False, n_subdivision = 4000, test_mode=False):
+def rt_dicts(path = None, microbe: str = 'e_coli', strn_or_phg: str = 'strain', seq_report=False, debug=False, pad_key = False, n_subdivision = 4000, test_mode=False, test_count=3):
     """For now this function simply returns a dictionary of extracted strains.
     Dictionary takes the form of keys being strain/phage names and """
 
@@ -183,7 +187,7 @@ def rt_dicts(path = None, microbe: str = 'e_coli', strn_or_phg: str = 'strain', 
       path = f'/content/drive/MyDrive/phage_public_datasets/{microbe}/genomes/{strn_or_phg}_genomes/'
     assert isinstance(path, str), f"Inputted path is not a string but type {type(path)}"
 
-    strain_dict = load_fna(path, strn_or_phg=strn_or_phg, seq_report=seq_report, debug=debug, pad_key=pad_key, n_subdivision=n_subdivision, test_mode=test_mode)
+    strain_dict = load_fna(path, strn_or_phg=strn_or_phg, seq_report=seq_report, debug=debug, pad_key=pad_key, n_subdivision=n_subdivision, test_mode=test_mode, test_count=test_count)
     return strain_dict
 
 def by_row_embedding_saver(arr, pads_per, path, name):
