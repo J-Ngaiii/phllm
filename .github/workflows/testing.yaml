@@ -53,4 +53,7 @@ jobs:
         run: python -c "import phllm; print('phllm is recognized!')"
       
       - name: Debug Check -> Testing Imports # this one tends to bug so I want to have sys.path info before this runs if it fails
-        run: python import_test.py
+        run: python tests/import_test.py
+
+      - name: Debug Check -> Evo2 Check # this one tends to bug so I want to have sys.path info before this runs if it fails
+        run: python tests/test_evo2.py
