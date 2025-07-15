@@ -38,11 +38,12 @@ jobs:
           pip install -r requirements.txt
           pip install -e . 
 
-      - name: Install Evo2 
-        run: | 
-          git submodule update --init --recursive
-          cd external/evo2
-          pip install .
+      # DISABLED neither local machine nor github workflows possesses CUDA
+      # - name: Install Evo2 
+      #   run: | 
+      #     git submodule update --init --recursive
+      #     cd external/evo2
+      #     pip install .
  
       # Debugs
       - name: Debug Check -> Disply Installed Packages
