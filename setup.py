@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="phllm",  # e.g., prokbert-pipeline
-    version="0.1.0",
+    version="0.1.2",
     description="Pipeline for genomic language model embeddings, processing and utilization in predicting phage-host interactions",
     author="Jonathan Ngai",
     packages=find_packages(),

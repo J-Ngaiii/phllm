@@ -4,7 +4,7 @@ from transformers import TrainingArguments, Trainer
 import os
 
 from phllm.utils.helpers import rt_dicts, save_to_dir
-from phllm.config.model_factory import get_model, get_embedding_extractor
+from phllm.config.model_factory import get_model, get_embedding_extractor, check_status
 from phllm.extract.chunkers import complete_n_select
 
 def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False, test_mode=False):  
@@ -22,6 +22,7 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     # Setting up model
     print("Setting up model...")
     print("\n")
+    check_status(llm=llm)
     tokenizer = get_model(llm=llm, rv='tokenizer')
     model = get_model(llm=llm, rv='model')
 

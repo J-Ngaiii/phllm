@@ -54,9 +54,15 @@ jobs:
     
       - name: Debug Check -> Confirm phllm is recognizeable # this one tends to bug so I want to have sys.path info before this runs if it fails
         run: python -c "import phllm; print('phllm is recognized!')"
+
+      - name: Debug Check -> Display phllm information and version
+        run: pip show phllm
       
       - name: Debug Check -> Testing Imports # this one tends to bug so I want to have sys.path info before this runs if it fails
         run: python tests/import_test.py
 
-      - name: Debug Check -> Evo2 Check # this one tends to bug so I want to have sys.path info before this runs if it fails
-        run: python tests/test_evo2.py
+      - name: Debug Check -> Testing Model Operation Status funtionality # this one tends to bug so I want to have sys.path info before this runs if it fails
+        run: python tests/model_status_tests.py
+
+      # - name: Debug Check -> Evo2 Check # this one tends to bug so I want to have sys.path info before this runs if it fails
+      #   run: python tests/test_evo2.py

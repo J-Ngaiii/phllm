@@ -1,16 +1,31 @@
-from transformers import AutoTokenizer, AutoModel 
+PROKBERT_AVAILABLE = None
+_model = None
+_tokenizer = None
 
-# using the prokbert-mini model
-model_name_path = 'neuralbioinfo/prokbert-mini-long'
-tokenizer = AutoTokenizer.from_pretrained(model_name_path, trust_remote_code=True)
-# We are going to use base, encoder model
-model = AutoModel.from_pretrained(model_name_path, trust_remote_code=True)
+def _load_prokbert():
+    global _model, _tokenizer, PROKBERT_AVAILABLE
+    if PROKBERT_AVAILABLE is not None:
+        return
+
+    try:
+        from transformers import AutoModel, AutoTokenizer
+        path = 'neuralbioinfo/prokbert-mini-long'
+        _tokenizer = AutoTokenizer.from_pretrained(path, trust_remote_code=True)
+        _model = AutoModel.from_pretrained(path, trust_remote_code=True)
+        PROKBERT_AVAILABLE = True
+    except Exception as e:
+        PROKBERT_AVAILABLE = False
+        _model = _tokenizer = None
+        print(f"[WARN - prokbert loader] 'ProkBERT' could not be imported: {e}")
+        import traceback; traceback.print_exc()
+
+def is_ProkBERT_available():
+    _load_prokbert()
+    return PROKBERT_AVAILABLE
 
 def get_ProkBERT(rv='model'):
-    rv = rv.lower()
-    if rv == 'model':
-        return model
-    elif rv == 'tokenizer':
-        return tokenizer
-    else:
-        raise ValueError(f"Unkown return option {rv}")
+    _load_prokbert()
+    if not PROKBERT_AVAILABLE:
+        print("ProkBERT not available; returning None.")
+        return None
+    return _model if rv.lower() == 'model' else _tokenizer
