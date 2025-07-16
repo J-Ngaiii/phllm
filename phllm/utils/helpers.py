@@ -190,7 +190,7 @@ def rt_dicts(path = None, microbe: str = 'e_coli', strn_or_phg: str = 'strain', 
     strain_dict = load_fna(path, strn_or_phg=strn_or_phg, seq_report=seq_report, debug=debug, pad_key=pad_key, n_subdivision=n_subdivision, test_mode=test_mode, test_count=test_count)
     return strain_dict
 
-def by_row_embedding_saver(arr, pads_per, path, name):
+def by_row_embedding_saver(arr, pads_per, path, name, debug=False):
     """
     Takes in a 3D numpy array of embeddings and a dictionary of the number of padding values per row
     represented in each value, then eliminates invalid embeddings and saves them in a designated directory.
@@ -214,7 +214,8 @@ def by_row_embedding_saver(arr, pads_per, path, name):
     """
     assert len(pads_per) == arr.shape[0], f"Dimension mismatch, pads dict has {len(pads_per)} values and arr has shape {arr.shape[0]} rows."
     os.makedirs(path, exist_ok=True) # ensure path exists
-    print("[DEBUG] Entered by_row_embedding_saver")
+    if debug:
+        print("[DEBUG] Entered by_row_embedding_saver")
 
     for i, (strain_name, pad_count) in enumerate(pads_per.items()): # enumerate creates an iterable returning an index and a tuple with pairs of elems from the iterable being enumerated
         valid_len = arr.shape[1] - pad_count # extract how many embeddings to keep
@@ -227,15 +228,17 @@ def by_row_embedding_saver(arr, pads_per, path, name):
         np.save(os.path.join(path, file_name), valid_embedding)
 
         print(f"Saved embeddings for {name} {strain_name} at {file_name}", f"{i+1}/{len(pads_per)}")
-        print(f"Embedding as numpy array:\n{valid_embedding}")
+        if debug:
+            print(f"Embedding as numpy array:\n{valid_embedding}")
     print(f"Finished saving {len(pads_per)} {name} embeddings!\n")
 
-def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain', full_save=False):
+def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain', full_save=False, debug=False):
     name = name.lower()
     strn_or_phage = strn_or_phage.lower()
     
-    print("[DEBUG] Entered save_to_dir()")
-    print(f"[DEBUG] name: {name}, strn_or_phage: {strn_or_phage}, path: {dir_path}")
+    if debug:
+        print("[DEBUG] Entered save_to_dir()")
+        print(f"[DEBUG] name: {name}, strn_or_phage: {strn_or_phage}, path: {dir_path}")
    
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -263,7 +266,7 @@ def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'
             print("Pads looks like:", type(pads), list(pads)[:3])
     else:
         print("Beginning saving process... (mode: by-row saving)")
-        by_row_embedding_saver(arr=embeddings, pads_per=pads, path=dir_path, name=name)
+        by_row_embedding_saver(arr=embeddings, pads_per=pads, path=dir_path, name=name, debug=debug)
     
     
    
