@@ -47,9 +47,12 @@ def complete_n_select(d: dict, n: int, rt_array=True, debug=False) -> Tuple[np.n
   - pads_per_val: dict
       A dictionary mapping each strain/phage key to the number of padded (empty string) entries added
       to ensure all rows in the output array are the same length.
+  - pad_starts : Dict[str, int],
+      A mapping from each strain/phage key to the index where padding begins in the output array.
 
   Notes:
   -----
+  - Padding dictionary is invalid for return dictionary mode and pad_start instead displays where the padding would've started.
   - The final segment in each sequence may be shorter than n if the total number of base pairs
     is not divisible by n. No further truncation is performed.
   - If `rt_array=True`, shorter rows are padded with empty strings ('') to match the longest row.
@@ -75,7 +78,7 @@ def complete_n_select(d: dict, n: int, rt_array=True, debug=False) -> Tuple[np.n
     else:
       return arr
 
-  full_seqs = [''.join(seq_lst) for seq_lst in d.values()]
+  full_seqs = [''.join(seq_lst) for seq_lst in d.values()] # creates list where index i is the ith strain and the elem is all basepairs joined into one string for the ith strain
   if rt_array:
     initial_sub_samples = [_n_subdivide(seq, n, False) for seq in full_seqs] # not all elems will have arrays of the same length
 
@@ -83,27 +86,32 @@ def complete_n_select(d: dict, n: int, rt_array=True, debug=False) -> Tuple[np.n
       print(f"Initial sub samples:\n {initial_sub_samples}\n")
 
     # padding section
-    max_length = max(len(x) for x in initial_sub_samples)
+    max_length = max(len(x) for x in initial_sub_samples) # find the strain with the largest number of subdivisions
     padded = [] # POTENTIAL ISSUE: need to normalize the length, but unsure if model hallucinates embeddings for empty padding inputs
     num_pads = []
+    pad_start_indices = []
     for samp in initial_sub_samples:
         assert isinstance(samp, list), f"Samples from initial sub samples is {type(samp)} but should be type list."
         discrepancy = max_length - len(samp)
-        padded.append(np.array(samp + [''] * discrepancy))
+        padded.append(np.array(samp + [''] * discrepancy)) # add empty padding entries to samp list representing even subdivisions of base pairs
         num_pads.append(discrepancy)
+        pad_start_indices.append(len(samp))
 
     if debug:
       print(f"Num pads:\n {num_pads}\n")
 
     pads_per_val = dict(zip(d.keys(), num_pads))
+    pad_starts = dict(zip(d.keys(), pad_start_indices))
     out = np.array(padded, dtype=object).reshape((len(d), -1))
     # assert len(out.shape) == 2, f"Output has {len(out.shape)} dimension but should have 2 dimensions."
     # assert out.shape[0] == len(dict), f"Output has {out.shape[0]} rows but should {len(dict)}."
-    return (out, pads_per_val)
+    return (out, pads_per_val, pad_starts)
 
   else:
-    sub_samples = map(lambda seq: _n_subdivide(seq, n, False), full_seqs)
-    return (dict(list(zip(d.keys(), sub_samples))), pads_per_val)
+    sub_samples = list(map(lambda seq: _n_subdivide(seq, n, False), full_seqs))
+    pads_per_val = {k: 0 for k in d.keys()}
+    pad_starts = {k: len(sub_samples[i]) for i, k in enumerate(d.keys())}
+    return (dict(list(zip(d.keys(), sub_samples))), pads_per_val, pad_starts)
 
 def extract_embeddings_prokbert(
     arr: list[list],

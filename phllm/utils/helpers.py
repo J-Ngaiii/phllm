@@ -199,7 +199,7 @@ def rt_dicts(path = None, microbe: str = 'e_coli', strn_or_phg: str = 'strain', 
     strain_dict = load_fna(path, strn_or_phg=strn_or_phg, seq_report=seq_report, debug=debug, pad_key=pad_key, n_subdivision=n_subdivision, test_mode=test_mode, test_count=test_count)
     return strain_dict
 
-def by_row_embedding_saver(arr, pads_per, path, name, strn_or_phg='strain', debug=False):
+def by_row_embedding_saver(arr, pad_indices, path, name, strn_or_phg='strain', debug=False):
     """
     Takes in a 3D numpy array of embeddings and a dictionary of the number of padding values per row
     represented in each value, then eliminates invalid embeddings and saves them in a designated directory.
@@ -212,8 +212,8 @@ def by_row_embedding_saver(arr, pads_per, path, name, strn_or_phg='strain', debu
         - d is the number of subdivisions (some of which may be padded)
         - E is the embedding dimension for each subdivision
 
-    - pads_per : dict
-        A dictionary where keys are strain/phage ids (eg 370D) and values are the number of padding elements for each strain.
+    - pad_indices : dict
+        Mapping from strain/phage ID to index where padding starts (i.e., number of *valid* entries).
 
     - path : str
         The directory path where the embeddings should be saved.
@@ -221,14 +221,15 @@ def by_row_embedding_saver(arr, pads_per, path, name, strn_or_phg='strain', debu
     - name : str
         The base name for the saved embeddings (e.g., `ephage_embed`).
     """
-    assert len(pads_per) == arr.shape[0], f"Dimension mismatch, pads dict has {len(pads_per)} values and arr has shape {arr.shape[0]} rows."
+    assert len(pad_indices) == arr.shape[0], f"Dimension mismatch, pads dict has {len(pad_indices)} values and arr has shape {arr.shape[0]} rows."
     os.makedirs(path, exist_ok=True) # ensure path exists
     if debug:
         print("[DEBUG] Entered by_row_embedding_saver")
 
-    for i, (id, pad_count) in enumerate(pads_per.items()): # enumerate creates an iterable returning an index and a tuple with pairs of elems from the iterable being enumerated
-        valid_len = arr.shape[1] - pad_count # extract how many embeddings to keep
-        valid_embedding = arr[i, :valid_len, :]
+    for i, (id, pad_index) in enumerate(pad_indices.items()): # enumerate creates an iterable returning an index and a tuple with pairs of elems from the iterable being enumerated
+        # handles for test mode where we only extract 3 subdivisions but the whole embedding has a lot of pads.
+        # happens cuz in test mode: rt_dicts extracts all basepairs for 3 strains --> complete_n_select splits those lists of all basepairs into chunks => theres padding left over
+        valid_embedding = arr[i, :pad_index, :]
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         print(f"Iteration {i}, timestamp {timestamp}, embedding dimension {valid_embedding.shape}")
@@ -236,12 +237,12 @@ def by_row_embedding_saver(arr, pads_per, path, name, strn_or_phg='strain', debu
         file_name = f"{name}_{strn_or_phg}_{id}_{timestamp}.npy"
         np.save(os.path.join(path, file_name), valid_embedding)
 
-        print(f"Saved embeddings for {name} {strn_or_phg} {id} at {file_name}", f"{i+1}/{len(pads_per)}")
+        print(f"Saved embeddings for {name} {strn_or_phg} {id} at {file_name}", f"{i+1}/{len(pad_indices)}")
         if debug:
             print(f"Embedding as numpy array:\n{valid_embedding}")
-    print(f"Finished saving {len(pads_per)} {name} embeddings!\n")
+    print(f"Finished saving {len(pad_indices)} {name} embeddings!\n")
 
-def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain', full_save=False, debug=False):
+def save_to_dir(dir_path, embeddings, pads, pad_indices, name='ecoli', strn_or_phage='strain', full_save=False, debug=False, test_mode=False, test_count=3):
     name = name.lower()
     strn_or_phage = strn_or_phage.lower()
     
@@ -261,6 +262,7 @@ def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'
         try:
             embedding_name = get_filenames(bacteria=name, embed_or_pad='embedding_file', strn_or_phage=strn_or_phage)
             pad_name = get_filenames(bacteria=name, embed_or_pad='padding_file', strn_or_phage=strn_or_phage)
+            pad_indices_name = get_filenames(bacteria=name, embed_or_pad='padding_index_file', strn_or_phage=strn_or_phage)
         except ValueError as e:
             print("Failed to get names:", e)
 
@@ -270,12 +272,15 @@ def save_to_dir(dir_path, embeddings, pads, name='ecoli', strn_or_phage='strain'
         try:
             with open(os.path.join(dir_path, f'{pad_name}_{timestamp}.json'), 'w') as f:
                 json.dump(pads, f)
+            with open(os.path.join(dir_path, f'{pad_indices_name}_{timestamp}.json'), 'w') as f:
+                json.dump(pad_indices, f)
         except Exception as e:
             print("Failed to write JSON:", e)
             print("Pads looks like:", type(pads), list(pads)[:3])
+            print("Pads indices looks like:", type(pad_indices), list(pad_indices)[:3])
     else:
         print("Beginning saving process... (mode: by-row saving)")
-        by_row_embedding_saver(arr=embeddings, pads_per=pads, path=dir_path, name=name, debug=debug)
+        by_row_embedding_saver(arr=embeddings, pad_indices=pad_indices, path=dir_path, name=name, debug=debug, test_mode=False, test_count=3)
     
     
    

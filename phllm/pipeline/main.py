@@ -52,8 +52,8 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     # Chunking and Extracting Embeddings
     print("Dividing data into chunks...")
     print("\n")
-    estrain_n_select, estrain_pads = complete_n_select(ecoli_strains, context)
-    ephage_n_select, ephage_pads = complete_n_select(ecoli_phages, context)
+    estrain_n_select, estrain_pads, estrain_pad_indices = complete_n_select(ecoli_strains, context)
+    ephage_n_select, ephage_pads, ephage_pad_indices = complete_n_select(ecoli_phages, context)
 
     print("Running embedding model...")
     print("\n")
@@ -70,6 +70,6 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     # Saving Embeddings to Directory
     print(f"Initiating saving of embeddings...")
     print("\n")
-    save_to_dir(strain_out, embeddings=estrain_embed, pads=estrain_pads, name=bacteria, strn_or_phage='strain', debug=test_mode)
-    save_to_dir(phage_out, embeddings=ephage_embed, pads=ephage_pads, name=bacteria, strn_or_phage='phage', debug=test_mode)
+    save_to_dir(strain_out, embeddings=estrain_embed, pads=estrain_pads, pad_indices=estrain_pad_indices, name=bacteria, strn_or_phage='strain', debug=test_mode)
+    save_to_dir(phage_out, embeddings=ephage_embed, pads=ephage_pads, pad_indices=ephage_pad_indices, name=bacteria, strn_or_phage='phage', debug=test_mode)
     print(f"Main workloop finished, exiting function...")

@@ -19,6 +19,10 @@ BACT = {
                 'strain' : 'estrain_pads', 
                 'phage' : 'ephage_pads_'
                 }, 
+            'padding_index_file' : {
+                'strain' : 'estrain_pad_indices', 
+                'phage' : 'ephage_pad_indices'
+                }, 
         }
     }
 }
