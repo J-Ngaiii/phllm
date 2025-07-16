@@ -110,9 +110,10 @@ def extract_embeddings_prokbert(
     n: int,
     tokenizer: callable,
     model: callable,
-    out_path: str = './experiments',
-    log_path: str = "./experiment_logs", 
-    test_mode=False
+    hugface_out_path: str = './experiments',
+    hugface_log_path: str = "./experiment_logs", 
+    test_mode=False, 
+    test_count=3
     ):
 
   """
@@ -149,10 +150,10 @@ def extract_embeddings_prokbert(
     tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
 
     training_args = TrainingArguments(
-    output_dir=out_path,  # Output directory
+    output_dir=hugface_out_path,  # Output directory
     per_device_eval_batch_size=16,  # Batch size for evaluation
     remove_unused_columns=True,  # Ensure compatibility with input format
-    logging_dir=log_path,  # Logging directory
+    logging_dir=hugface_log_path,  # Logging directory
     report_to="none",  # No reporting needed
     )
 
@@ -203,7 +204,7 @@ def extract_embeddings_prokbert(
   try:
     if test_mode:
         print("[DEBUG] Running in TEST MODE")
-        for i in range(min(3, arr.shape[1])):
+        for i in range(min(test_count, arr.shape[1])):
             extract(index=i, embed_arr=embeddings)
     else:
         for i in range(arr.shape[1]):
@@ -212,8 +213,8 @@ def extract_embeddings_prokbert(
     out = np.array(embeddings)
     out = out.transpose(1, 0, 2)
 
-    if out.shape[0] != arr.shape[0] or out.shape[1] != (3 if test_mode else arr.shape[1]):
-        print(f"[WARN] Output shape mismatch: expected {(arr.shape[0], 3 if test_mode else arr.shape[1])}, got {out.shape[:2]}")
+    if out.shape[0] != arr.shape[0] or out.shape[1] != (test_count if test_mode else arr.shape[1]):
+        print(f"[WARN] Output shape mismatch: expected {(arr.shape[0], test_count if test_mode else arr.shape[1])}, got {out.shape[:2]}")
   except Exception as e:
       import traceback
       print("[FATAL ERROR] Embedding extraction failed:")

@@ -7,13 +7,36 @@ from phllm.utils.helpers import rt_dicts, save_to_dir
 from phllm.config.model_factory import get_model, get_embedding_extractor, check_status
 from phllm.extract.chunkers import complete_n_select
 
-def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False, test_mode=False):  
+def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False, test_mode=False, test_count=3):  
+    """
+    Runs the full workflow for extracting genome embeddings using a specified LLM.
+
+    This function loads genomic sequences for bacterial strains and phages, chunks them into context-sized segments,
+    runs an LLM-based embedding model, and saves the resulting embeddings to disk.
+
+    Parameters
+    ----------
+    - llm (str): Name of the large language model to use (e.g., 'prokbert', 'evo2').
+    - context (int): Length of each chunk (in tokens) used when splitting genome sequences for embedding.
+    - strain_in (str or Path): File path to the input file or directory containing strain sequences.
+    - strain_out (str or Path): Output directory path where strain embeddings and metadata will be saved.
+    - phage_in (str or Path): File path to the input file or directory containing phage genome sequences.
+    - phage_out (str or Path): Output directory path where phage embeddings and metadata will be saved.
+    - bacteria (str, optional): Name of the bacterial species for logging and saving (default is 'ecoli').
+    - early_exit (bool, optional): If True, exits the function after loading data and before model inference.
+    - test_mode (bool, optional): If True, reduces data processed for fast prototyping or testing.
+
+    Returns
+    -------
+    None
+        Saves embedding results to disk. Prints out progress and status messages during execution.
+    """
     # Pulling genomes into dictionaries to load into model
 
     print("Extracting raw data into dictionaries for processing...")
     print("\n")
-    ecoli_strains = rt_dicts(path=strain_in, seq_report=True, test_mode=test_mode)
-    ecoli_phages = rt_dicts(path=phage_in, strn_or_phg='phage', seq_report=True, test_mode=test_mode)
+    ecoli_strains = rt_dicts(path=strain_in, seq_report=True, test_mode=test_mode, test_count=test_count)
+    ecoli_phages = rt_dicts(path=phage_in, strn_or_phg='phage', seq_report=True, test_mode=test_mode, test_count=test_count)
     
     if early_exit:
         print("Initiating early exit")
