@@ -280,7 +280,7 @@ def save_to_dir(dir_path, embeddings, pads, pad_indices, name='ecoli', strn_or_p
             print("Pads indices looks like:", type(pad_indices), list(pad_indices)[:3])
     else:
         print("Beginning saving process... (mode: by-row saving)")
-        by_row_embedding_saver(arr=embeddings, pad_indices=pad_indices, path=dir_path, name=name, debug=debug, test_mode=False, test_count=3)
+        by_row_embedding_saver(arr=embeddings, pad_indices=pad_indices, path=dir_path, name=name, debug=debug)
     
     
    
