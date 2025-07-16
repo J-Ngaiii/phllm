@@ -180,8 +180,17 @@ def load_fna(
     return strains
 
 def rt_dicts(path = None, microbe: str = 'e_coli', strn_or_phg: str = 'strain', seq_report=False, debug=False, pad_key = False, n_subdivision = 4000, test_mode=False, test_count=3):
-    """For now this function simply returns a dictionary of extracted strains.
-    Dictionary takes the form of keys being strain/phage names and """
+    """
+    For now this function simply returns a dictionary of extracted strains.
+    Dictionary takes the form of keys being strain/phage names.
+
+    Full workloop is: 
+    - load_fna_seq: takes in a file path --> parses an iterable of seq objects (ech containing a string of base pairs) --> returns an list of plain strings representing base pairs, one per seq object
+    - load_fna: iterates through all files in a given directory path --> collects the list of plain strings representing base pairs --> returns a dictionary mapping id (eg. 370D) to this list of base pairs as strings
+    - rt_dicts: returns the dictionary load_fna returns; exists as a wrapper to precondition certain settings
+
+    - complete_n_select then takes over using the dictionary mapping ids to list of base pairs as strings to divide everything into equal subdivisions of a length compliant with compliant with the context window.
+    """
 
     if path is None:
       path = f'/content/drive/MyDrive/phage_public_datasets/{microbe}/genomes/{strn_or_phg}_genomes/'
@@ -190,7 +199,7 @@ def rt_dicts(path = None, microbe: str = 'e_coli', strn_or_phg: str = 'strain', 
     strain_dict = load_fna(path, strn_or_phg=strn_or_phg, seq_report=seq_report, debug=debug, pad_key=pad_key, n_subdivision=n_subdivision, test_mode=test_mode, test_count=test_count)
     return strain_dict
 
-def by_row_embedding_saver(arr, pads_per, path, name, debug=False):
+def by_row_embedding_saver(arr, pads_per, path, name, strn_or_phg='strain', debug=False):
     """
     Takes in a 3D numpy array of embeddings and a dictionary of the number of padding values per row
     represented in each value, then eliminates invalid embeddings and saves them in a designated directory.
@@ -204,7 +213,7 @@ def by_row_embedding_saver(arr, pads_per, path, name, debug=False):
         - E is the embedding dimension for each subdivision
 
     - pads_per : dict
-        A dictionary where keys are strain names (or ids) and values are the number of padding elements for each strain.
+        A dictionary where keys are strain/phage ids (eg 370D) and values are the number of padding elements for each strain.
 
     - path : str
         The directory path where the embeddings should be saved.
@@ -217,17 +226,17 @@ def by_row_embedding_saver(arr, pads_per, path, name, debug=False):
     if debug:
         print("[DEBUG] Entered by_row_embedding_saver")
 
-    for i, (strain_name, pad_count) in enumerate(pads_per.items()): # enumerate creates an iterable returning an index and a tuple with pairs of elems from the iterable being enumerated
+    for i, (id, pad_count) in enumerate(pads_per.items()): # enumerate creates an iterable returning an index and a tuple with pairs of elems from the iterable being enumerated
         valid_len = arr.shape[1] - pad_count # extract how many embeddings to keep
         valid_embedding = arr[i, :valid_len, :]
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         print(f"Iteration {i}, timestamp {timestamp}, embedding dimension {valid_embedding.shape}")
 
-        file_name = f"{name}_{strain_name}_{timestamp}.npy"
+        file_name = f"{name}_{strn_or_phg}_{id}_{timestamp}.npy"
         np.save(os.path.join(path, file_name), valid_embedding)
 
-        print(f"Saved embeddings for {name} {strain_name} at {file_name}", f"{i+1}/{len(pads_per)}")
+        print(f"Saved embeddings for {name} {strn_or_phg} {id} at {file_name}", f"{i+1}/{len(pads_per)}")
         if debug:
             print(f"Embedding as numpy array:\n{valid_embedding}")
     print(f"Finished saving {len(pads_per)} {name} embeddings!\n")

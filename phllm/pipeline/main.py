@@ -65,7 +65,7 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
 
     print(f"Dimensions of chunked phage array: {ephage_n_select.shape}")
     ephage_embed = embedding_extractor(ephage_n_select, context, tokenizer, model, test_mode=test_mode)
-    print(f"Strain embeddings for {bacteria} extracted, dimensions: {ephage_embed.shape}")
+    print(f"Phage embeddings for {bacteria} extracted, dimensions: {ephage_embed.shape}")
 
     # Saving Embeddings to Directory
     print(f"Initiating saving of embeddings...")
