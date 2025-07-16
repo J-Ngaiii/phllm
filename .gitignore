@@ -2,4 +2,4 @@ __pycache__/
 *.pyc
 *egg*
 build/
-*DS_Store
+*DS_Store*
