@@ -155,7 +155,10 @@ def extract_embeddings_prokbert(
             return_tensors="pt"# Set the maximum sequence length if needed
         )
     
-    tokenized = ds.map(tokenize_func, batched=True, num_proc=1)
+    num_gpus = torch.cuda.device_count()
+    num_proc = max(1, num_gpus)  # Fallback to 1 if no GPU
+
+    tokenized = ds.map(tokenize_func, batched=True, num_proc=num_proc)
 
     training_args = TrainingArguments(
     output_dir=hugface_out_path,  # Output directory
