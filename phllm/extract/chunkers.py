@@ -157,6 +157,8 @@ def extract_embeddings_prokbert(
     
     num_gpus = torch.cuda.device_count()
     num_proc = max(1, num_gpus)  # Fallback to 1 if no GPU
+    if test_mode:
+       print(f"extract_embeddings_prokbert tokenizer map using {num_proc} cores")
 
     tokenized = ds.map(tokenize_func, batched=True, num_proc=num_proc)
 
