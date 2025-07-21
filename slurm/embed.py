@@ -57,7 +57,7 @@ def create_workflow(args, run_dir):
 #SBATCH --qos={args.qos}
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
+#SBATCH --cpus-per-task=4
 #SBATCH --gres={args.gpu}
 #SBATCH --time=3:00:00
 #SBATCH --output=logs/stage1_%j.out

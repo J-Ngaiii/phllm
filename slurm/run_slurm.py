@@ -26,7 +26,7 @@ def main():
     qos = "es_normal"                    # SLURM QOS
     # environment = "env_1"       # Conda environment name
     root_dir = "/global/home/users/jonathanngai/main/phllm"
-    gpu = "gpu:H100:1"
+    gpu = "gpu:H100:2"
 
     
     # =============================================
