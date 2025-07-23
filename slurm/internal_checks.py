@@ -18,7 +18,7 @@ class pipe_config():
             1: os.path.join(output_dir, "stage1_complete.txt"),
         }
         self.stage_names = {
-            1: "Workflow", 
+            1: "Main Tests", 
         }
 
     def get_stage_names(self):
@@ -51,7 +51,7 @@ def submit_job(script_path, dependency=None):
 
 def create_workflow(args, run_dir):
     script = f"""#!/bin/bash
-#SBATCH --job-name=embedding_extraction
+#SBATCH --job-name=phllm_model_checks
 #SBATCH --account={args.account}
 #SBATCH --partition={args.partition}
 #SBATCH --qos={args.qos}
@@ -60,8 +60,8 @@ def create_workflow(args, run_dir):
 #SBATCH --cpus-per-task=4
 #SBATCH --gres={args.gpu}
 #SBATCH --time=3:00:00
-#SBATCH --output=logs/embed_extract_%j.out
-#SBATCH --error=logs/embed_extract_%j.err
+#SBATCH --output=logs/phllm_checks_%j.out
+#SBATCH --error=logs/phllm_checks_%j.err
 
 echo "=== Beginning Main Workflow ==="
 echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
@@ -82,23 +82,16 @@ print('CUDA available:', torch.cuda.is_available())
 print('Number of GPUs:', torch.cuda.device_count())
 "
 
-echo "=== Workflow Begins ==="
+echo "=== Testing Begins ==="
 echo "
 try:
-    from phllm.pipeline.main import workflow
-    workflow(
-        llm='{args.llm}', 
-        context={args.context_window},
-        strain_in='{args.input_strain}', 
-        strain_out='{args.output_strain}', 
-        phage_in='{args.input_phage}', 
-        phage_out='{args.output_phage}', 
-        bacteria='{args.name_bact}',
-        test_mode={args.test_mode}
-    )
+    from phllm.config import check_status
+    print("Status of 'ProkBERT': ", check_status('prokbert'))
+    print("Status of 'Evo2': ", check_status('evo2'))
+    print("Model status check complete!")
 except Exception as e:
     import traceback
-    print('[ERROR] Workflow failed:')
+    print('[ERROR] Testing failed:')
     traceback.print_exc()
 " > temp_script.py
 
@@ -108,9 +101,9 @@ echo "Final output directory contents:"
 ls -lh {args.output_strain}
 ls -lh {args.output_phage}
 
-echo "=== Workflow Complete ==="
+echo "=== Testing Complete ==="
 
-touch {args.output}/workflow_complete.txt
+touch {args.output}/testing_complete.txt
 
 """
     path = os.path.join(run_dir, "test1.sh")
