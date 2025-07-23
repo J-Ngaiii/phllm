@@ -2,9 +2,6 @@ name: Phage-Host LLM Testing Flow
 
 on:
   workflow_dispatch:  # Allows manual triggering
-  push:
-    branches:
-      - main
   workflow_call:  # Allows other workflows to call this setup
 
 jobs:
@@ -20,7 +17,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11.8
+          python-version: 3.12
 
       - name: Cache Dependencies
         id: CacheStep

@@ -23,3 +23,4 @@ tqdm
 git+https://github.com/nbrg-ppcu/prokbert.git
 
 # Evo-2: not pip installable
+evo2
