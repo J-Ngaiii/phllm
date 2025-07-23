@@ -51,7 +51,7 @@ def submit_job(script_path, dependency=None):
 
 def create_workflow(args, run_dir):
     script = f"""#!/bin/bash
-#SBATCH --job-name=embedding_extraction
+#SBATCH --job-name=emb_ext
 #SBATCH --account={args.account}
 #SBATCH --partition={args.partition}
 #SBATCH --qos={args.qos}
@@ -71,7 +71,7 @@ module load ml/pytorch
 echo "Successfully loaded cluster pytorch enviornment"
 cd {args.root_dir}
 pip install -e .
-pip list phllm
+pip list
 echo "Successfully installed local package"
 
 echo "=== GPU info ==="
