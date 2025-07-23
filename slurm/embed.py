@@ -83,7 +83,7 @@ print('CUDA available:', torch.cuda.is_available())
 print('Number of GPUs:', torch.cuda.device_count())
 "
 
-python -c "
+python3 -c "
 from phllm.config import check_status
 print("Status of 'ProkBERT': ", check_status('prokbert'))
 print("Status of 'Evo2': ", check_status('evo2'))
