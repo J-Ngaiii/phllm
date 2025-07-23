@@ -85,9 +85,9 @@ print('Number of GPUs:', torch.cuda.device_count())
 
 python3 -c "
 from phllm.config import check_status
-print("Status of 'ProkBERT': ", check_status('prokbert'))
-print("Status of 'Evo2': ", check_status('evo2'))
-print("Model status check complete!")
+print('Status of ProkBERT: ', check_status('prokbert'))
+print('Status of Evo2: ', check_status('evo2'))
+print('Model status check complete!')
 "
 
 echo "=== Workflow Begins ==="
