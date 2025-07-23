@@ -57,7 +57,8 @@ setup(
         "datasets",
         "transformers",
         "biopython",
-        "tqdm"
+        "tqdm", 
+        "evo2"
     ],
     cmdclass={
         # 'install': CustomInstall,
