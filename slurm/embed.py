@@ -67,8 +67,8 @@ echo "=== Beginning Main Workflow ==="
 echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
 
 echo "=== Initializing Environment ==="
-module load ml/pytorch
-echo "Successfully loaded cluster pytorch enviornment"
+pip3 install torch torchvision torchaudio
+echo "Successfully installed pytorch"
 cd {args.root_dir}
 pip install -e .
 pip install evo2
@@ -79,15 +79,19 @@ echo "=== GPU info ==="
 nvidia-smi || echo "No GPUs found"
 python3 -c "
 import torch
+print('PyTorch CUDA version:', torch.version.cuda)
+print('cuDNN version:', torch.backends.cudnn.version())
 print('CUDA available:', torch.cuda.is_available())
 print('Number of GPUs:', torch.cuda.device_count())
 "
 
 python3 -c "
 from phllm.config import check_status
+print()
 print('Status of ProkBERT: ', check_status('prokbert'))
 print('Status of Evo2: ', check_status('evo2'))
 print('Model status check complete!')
+print()
 "
 
 echo "=== Workflow Begins ==="
