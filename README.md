@@ -39,6 +39,7 @@ We recommend using conda to easily install Transformer Engine. Here is an exampl
 - Step 1
 ```bash 
 pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
+pip install transformers[torch]
 ```
 - Step 2:
 ```bash

@@ -100,6 +100,7 @@ print()
 
 echo "=== Workflow Begins ==="
 echo "
+import traceback
 try:
     from phllm.pipeline.main import workflow
     workflow(
@@ -113,7 +114,6 @@ try:
         test_mode={args.test_mode}
     )
 except Exception as e:
-    import traceback
     print('[ERROR] Workflow failed:')
     traceback.print_exc()
 " > temp_script.py
