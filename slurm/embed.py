@@ -67,13 +67,19 @@ echo "=== Beginning Main Workflow ==="
 echo "Job: $SLURM_JOB_ID, Node: $SLURMD_NODENAME, Started: $(date)"
 
 echo "=== Initializing Environment ==="
-pip3 install torch torchvision torchaudio
-echo "Successfully installed pytorch"
+module load anaconda3
+conda activate {args.environment} 2>&1 || {{
+    echo "Direct activation failed, trying with conda init..."
+    conda init bash >/dev/null 2>&1
+    source ~/.bashrc >/dev/null 2>&1
+    conda activate {args.environment}
+}}
+pip3 install --no-build-isolation transformer_engine[pytorch]
+pip install evo2
 cd {args.root_dir}
 pip install -e .
-pip install evo2
+echo "Successfully initialized environment"
 pip list
-echo "Successfully installed local package"
 
 echo "=== GPU info ==="
 nvidia-smi || echo "No GPUs found"
@@ -134,6 +140,9 @@ touch {args.output}/workflow_complete.txt
 def main():
     parser = argparse.ArgumentParser(description="Submit embed.py as 1 SLURM job")
     
+    # Environemnt
+    parser.add_argument('--environment', required=True, help='Environment to run script with.')
+
     # Paths
     parser.add_argument('--input_strain', required=True, help='Input strain FASTA path.')
     parser.add_argument('--input_phage', help='Input phage FASTA path.')
@@ -141,7 +150,7 @@ def main():
     parser.add_argument('--output_phage', help='Output phage npz(compressed numpy array) path.')
     parser.add_argument('--output', help='General output directory path.')
 
-    # Configs
+    # Workflow Args
     parser.add_argument('--llm', default='prokbert', help='Llm model to use for generating embeddings.')
     parser.add_argument('--context_window',type=int, default=4000, help='Context window for the Embedding model.')
     parser.add_argument('--name_bact', help='Name of bacteria.')

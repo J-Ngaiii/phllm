@@ -36,14 +36,20 @@ This repo contains code to flow genome sequences into genomic language models (g
   
 Check respective githubs for more details about [Transformer Engine](https://github.com/NVIDIA/TransformerEngine) and [Flash Attention](https://github.com/Dao-AILab/flash-attention/tree/main) and how to install them.
 We recommend using conda to easily install Transformer Engine. Here is an example of how to install the prerequisites:
-
-- Try moving to the root of this directory then running `pip install .`
-
-- If that does not work run: 
+- Step 1
+```bash 
+pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
+```
+- Step 2:
 ```bash
 conda install -c nvidia cuda-nvcc cuda-cudart-dev
-conda install -c conda-forge transformer-engine-torch=2.3.0
 pip install flash-attn==2.8.0.post2 --no-build-isolation
+```
+- While on a GPU node:
+```bash
+pip3 install --no-build-isolation transformer_engine[pytorch]
+pip install evo2
+pip install .
 ```
 - Then run: `conda install numpy pandas scikit-learn matplotlib seaborn pyarrow -c conda-forge`
 - Before finally running `pip install -r requirements.txt` and `pip install .` from the root of the directory

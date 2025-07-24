@@ -33,8 +33,9 @@ def main():
     # WORKFLOW PARAMETERS (with defaults)
     # =============================================
     
-    # Script name
+    # Script name and Environment
     script_name = "embed.py"
+    environment = "phllm0.1.3"
 
     # Configs
     llm = "prokbert"
@@ -52,6 +53,7 @@ def main():
         "python3", script_name,
         
         # Required arguments
+        "--environment", environment, 
         "--input_strain", input_strain,
         "--input_phage", input_phage,
         "--output_strain", output_strain,
@@ -88,6 +90,10 @@ def main():
     print(f"gpu:               {gpu}")
     print()
 
+    print("Directory Paths")
+    print(f"Environment:  {environment}")
+    print()
+    
     print("Directory Paths")
     print(f"Input strain dir:  {input_strain}")
     print(f"Input phage dir:   {input_phage}")
