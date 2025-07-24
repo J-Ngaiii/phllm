@@ -74,7 +74,8 @@ conda activate {args.environment} 2>&1 || {{
     source ~/.bashrc >/dev/null 2>&1
     conda activate {args.environment}
 }}
-pip3 install --no-build-isolation transformer_engine[pytorch]
+echo "Intermediate Environment Check"
+conda list
 pip install evo2
 cd {args.root_dir}
 pip install -e .
