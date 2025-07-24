@@ -75,12 +75,9 @@ conda activate {args.environment} 2>&1 || {{
     conda activate {args.environment}
 }}
 echo "Intermediate Environment Check"
-conda list
-pip install evo2
 cd {args.root_dir}
-pip install -e .
 echo "Successfully initialized environment"
-pip list
+conda list
 
 echo "=== GPU info ==="
 nvidia-smi || echo "No GPUs found"
