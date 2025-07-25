@@ -75,7 +75,7 @@ conda activate {args.environment} 2>&1 || {{
     conda activate {args.environment}
 }}
 cd {args.root_dir}
-pip install --no-build-isolation transformer_engine[pytorch]
+conda install -c conda-forge transformer-engine-torch
 echo "Successfully initialized environment"
 conda list
 
