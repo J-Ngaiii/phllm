@@ -44,7 +44,7 @@ pip install transformers[torch]
 - Step 2:
 ```bash
 conda install -c nvidia cuda-nvcc cuda-cudart-dev
-pip install flash-attn==2.8.0.post2 --no-build-isolation
+# pip install flash-attn==2.8.0.post2 --no-build-isolation (doesn't run on lawrencium)
 ```
 - While on a GPU node:
 ```bash
