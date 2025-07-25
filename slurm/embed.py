@@ -74,7 +74,7 @@ conda activate {args.environment} 2>&1 || {{
     source ~/.bashrc >/dev/null 2>&1
     conda activate {args.environment}
 }}
-echo "Intermediate Environment Check"
+pip install flash-attn==2.3.6 --no-build-isolation
 cd {args.root_dir}
 echo "Successfully initialized environment"
 conda list
