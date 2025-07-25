@@ -74,7 +74,6 @@ conda activate {args.environment} 2>&1 || {{
     source ~/.bashrc >/dev/null 2>&1
     conda activate {args.environment}
 }}
-pip install flash-attn==2.8.0.post2 --no-build-isolation
 cd {args.root_dir}
 echo "Successfully initialized environment"
 conda list
