@@ -39,11 +39,11 @@ We recommend using conda to easily install Transformer Engine. Here is an exampl
 - Step 1
 ```bash 
 pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126
-pip3 install --no-build-isolation git+https://github.com/NVIDIA/TransformerEngine.git@stable # transformer engine is unstable with more advanced CUDAs like 12.9
 ```
 - Step 2:
 ```bash
 conda install -c nvidia cuda-nvcc cuda-cudart-dev
+conda install -c nvidia cuda-nvrtc-dev
 # pip install flash-attn==2.8.0.post2 --no-build-isolation (doesn't run on lawrencium)
 ```
 - While on a GPU node:
