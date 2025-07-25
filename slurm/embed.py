@@ -76,6 +76,7 @@ conda activate {args.environment} 2>&1 || {{
 }}
 cd {args.root_dir}
 conda install -c conda-forge transformer-engine-torch
+Y
 echo "Successfully initialized environment"
 conda list
 
