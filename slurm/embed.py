@@ -75,7 +75,7 @@ conda activate {args.environment} 2>&1 || {{
     conda activate {args.environment}
 }}
 cd {args.root_dir}
-pip3 install --no-build-isolation git+https://github.com/NVIDIA/TransformerEngine.git@stableecho "Successfully initialized environment"
+pip3 install --no-build-isolation transformer_engine[pytorch]
 pip list
 
 
