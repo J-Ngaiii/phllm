@@ -74,7 +74,7 @@ conda activate {args.environment} 2>&1 || {{
     source ~/.bashrc >/dev/null 2>&1
     conda activate {args.environment}
 }}
-pip install flash-attn==2.3.6 --no-build-isolation
+pip install flash-attn==2.8.0.post2 --no-build-isolation
 cd {args.root_dir}
 echo "Successfully initialized environment"
 conda list
@@ -83,6 +83,7 @@ echo "=== GPU info ==="
 nvidia-smi || echo "No GPUs found"
 python3 -c "
 import torch
+print('PyTorch version:', torch.__version__)
 print('PyTorch CUDA version:', torch.version.cuda)
 print('cuDNN version:', torch.backends.cudnn.version())
 print('CUDA available:', torch.cuda.is_available())
