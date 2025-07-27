@@ -1,5 +1,5 @@
 # Phage-Host Interaction Large Language Model Embedding Extraction
-This repo contains code to flow genome sequences into genomic language models (gLMs) and extract their embeddings into numpy arrays. There is automatic handling to split inputted genome sequences into lengths compliant with context windows.
+This repo contains code to flow genome sequences into genomic language models (gLMs) and extract their embeddings into numpy arrays. There is automatic handling to split inputted genome sequences into lengths compliant with context windows. This repo is a work in progress and a part of a larger project at the Arkin Lab, Lawrence Berkeley National Labratory on using deep learning and LLM models for predicting phage-host interactions. 
 
 
 # Setup (Cloning this repo)
@@ -15,11 +15,9 @@ This repo contains code to flow genome sequences into genomic language models (g
     - installing pyarrow in parricular via conda might be helpful if you're running this on your local machine because Apple Silicon (M1/M2/M3 Macs) runs into issues trying to build pyarrow via pip
     - ensure than numpy has a version older than 2.0 (ie numpy<2.0), this many conflict with spacy which uses thinc and blis, modules that require numpy >=2.0
 
-- If trying to run GPUs consider also running `conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia` so your enviornment has a CUDA. 
-    - note that the cuda version doesn't have to be 11.8 it should be whatever matches with your cluster
-    - Lawrenceium's `module avail ml/pytorch` comes with two modules at version 11.7 (`ml/pytorch/2.0.1-py3.11.7` and `ml/pytorch/2.3.1-py3.11.7 (D)`)
-
 # Setup (Enviornment - Yes Evo2)
+Assuming you've already followed the instructions above and instantiated an environment that can run this repo without evo2 here's what to do next with that enviornment. 
+
 ## Evo2 Requirements
 **Prerequisites**
 - [Transformer Engine](https://github.com/NVIDIA/TransformerEngine) >= 2.0.0
@@ -42,9 +40,8 @@ pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https
 ```
 - Step 2:
 ```bash
-conda install -c nvidia cuda-nvcc cuda-cudart-dev
-conda install -c nvidia cuda-nvrtc-dev
-# pip install flash-attn==2.8.0.post2 --no-build-isolation (doesn't run on lawrencium)
+conda install -c nvidia cuda-nvcc cuda-cudart-dev cuda-nvrtc-dev
+# pip install flash-attn==2.8.0.post2 --no-build-isolation (may not run on all superclusters like lawrencium)
 ```
 - While on a GPU node:
 ```bash
@@ -52,8 +49,6 @@ pip3 install --no-build-isolation transformer_engine[pytorch]
 pip install evo2
 pip install .
 ```
-- Then run: `conda install numpy pandas scikit-learn matplotlib seaborn pyarrow -c conda-forge`
-- Before finally running `pip install -r requirements.txt` and `pip install .` from the root of the directory
 
 # How test mode works
 - Constrains rt_dicts to only return 3 strains/phages
