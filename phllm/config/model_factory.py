@@ -15,7 +15,7 @@ MODEL_CONFIG = {
         'getter': get_Evo2,
         'extractor': extract_embeddings_evo2
     }, 
-    'megaDNA': {
+    'megadna': {
         'operational_status': is_megaDNA_available,
         'getter': get_megaDNA,
         'extractor': extract_embeddings_megadna
