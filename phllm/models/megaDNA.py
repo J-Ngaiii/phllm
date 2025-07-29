@@ -25,6 +25,6 @@ def is_megaDNA_available():
 def get_megaDNA(rv='model'):
     _load_megadna()
     if not MEGADNA_AVAILABLE:
-        print("ProkBERT not available; returning None.")
+        print("megaDBA not available; returning None.")
         return None
     return _model if rv.lower() == 'model' else _tokenizer
