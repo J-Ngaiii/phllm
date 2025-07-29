@@ -64,7 +64,7 @@ setup(
         # 'install': CustomInstall,
         # 'develop': CustomDevelop
     }, 
-    python_requires=">=3.12", 
+    python_requires=">=3.11", 
     description="Pipeline for genomic language model embeddings, processing and utilization in predicting phage-host interactions",
     long_description=readme, 
     long_description_content_type="text/markdown",
