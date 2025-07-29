@@ -47,7 +47,10 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     print("\n")
     check_status(llm=llm)
     tokenizer = get_model(llm=llm, rv='tokenizer')
+    print(f"Loaded tokenizer for '{llm}': {tokenizer}")
     model = get_model(llm=llm, rv='model')
+    print(f"Loaded model for '{llm}': {model}")
+
 
     # Chunking and Extracting Embeddings
     print("Dividing data into chunks...")

@@ -94,6 +94,7 @@ from phllm.config import check_status
 print()
 print('Status of ProkBERT: ', check_status('prokbert'))
 print('Status of Evo2: ', check_status('evo2'))
+print('Status of megaDNA: ', check_status('megadna'))
 print('Model status check complete!')
 print()
 "
