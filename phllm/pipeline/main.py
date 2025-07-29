@@ -60,6 +60,7 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
 
     print(f"Dimensions of chunked strain array: {estrain_n_select.shape}")
     embedding_extractor = get_embedding_extractor(llm=llm)
+    print(f"Using extractor: {embedding_extractor.__name__}")
     estrain_embed = embedding_extractor(estrain_n_select, context, tokenizer, model, test_mode=test_mode)
     print(f"Strain embeddings for {bacteria} extracted, dimensions: {estrain_embed.shape}")
 
