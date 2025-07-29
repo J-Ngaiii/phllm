@@ -8,7 +8,7 @@ def _load_megadna():
 
     try:
         import torch
-        device = 'cuda0' 
+        device = "cuda:0" if torch.cuda.is_available() else "cpu" 
         model_path = "megaDNA_phage_145M.pt"
         _model = torch.load(model_path, map_location=torch.device(device))
         MEGADNA_AVAILABLE = True
