@@ -36,7 +36,7 @@ def load_fna_seq(file_path: str, retain_seq_obj: bool = False, filt = None):
       seq_list.append(r.seq)
   else:
     for r in SeqIO.parse(file_path, 'fasta'):
-      seq_list.append(str(r.seq))
+      seq_list.append(str(r.seq)) # maintain split at this level
 
   if filt is not None:
     seq_list = filt(seq_list)
@@ -106,7 +106,7 @@ def load_fna(
                 max_num_base_pairs = n_base_pairs
             print('\n')
 
-            strains[identifier] = seq_list
+            strains[identifier] = seq_list # each elem is a contig
 
             count += 1
             if test_mode and count == test_count:

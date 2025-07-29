@@ -3,8 +3,127 @@ from typing import Tuple, Dict, Union
 from datasets import Dataset
 from transformers import TrainingArguments, Trainer
 import torch
-
+import random
 import time
+
+def altered_n_select(
+    d: dict,
+    n: int,
+    overlap_proportion: float,
+    rand_score: float = 0.5,
+    rt_array: bool = True,
+    debug: bool = False
+) -> Tuple[np.ndarray | Dict[str, list[str]], Dict[str, int], Dict[str, int]]:
+  """
+  Subdivides sequences from a dictionary of DNA base pair strings into fixed-length sub-samples PER CONTIG.
+
+  Args:
+  ----------
+  - d : dict
+      A dictionary mapping strain/phage identifiers to a list of DNA contig sequences (strings).
+      This is the standard dictionary output from the function 'rt_dicts'.
+        Example:
+        {
+            'strain_A': ['ATCG', 'GCTA'],
+            'strain_B': ['TTGG', 'CCAA']
+        }
+
+  - n : int
+      The fixed length of each sub-sample (i.e., the number of base pairs per segment).
+
+  - overlap_proportion: float
+      Determines the proportion of overlap between subdivided portions within any arbitrary contig
+
+  - rand_score: float
+      Determines the degree of randomness in what base pairs overlap if overlap_proportion > 0.
+
+  - rt_array : bool, optional (default=True)
+      If True:
+          Returns a 2D NumPy array of shape (B, d), where B is the number of strains/phages
+          and d is the number of n-sized sub-samples per strain (padded if necessary to align all rows).
+      If False:
+          Returns a dictionary mapping each strain/phage to its list of n-sized sub-samples (without padding).
+
+  debug : bool, optional (default=False)
+      If True, prints debug information such as intermediate sub-sample arrays and padding amounts.
+
+  Mechanism: retains divisions between individual contigs. rather than joining all contigs together then dividing evenly in chunks of context size n,
+  this function treats contigs as a 'natural division', processing contig by contig only dividing when a contig exceeds the inputted context window.
+  
+  Returns (two outputs in the order as listed below):
+  -------
+  - out : np.ndarray or dict
+      If rt_array is True:
+          out : np.ndarray
+              A 2D NumPy array of shape (B, d) where each element is a string of base pairs up to length n
+              (or an empty string for padded entries). Eachof the d strings may represent a whole contig (if it's less than the context window) 
+              of subdivisions of a contig. 
+      Else:
+          out : dict
+              A dictionary where each key maps to a list of n-sized string sub-samples for that strain.
+  - pads_per_val: dict
+      A dictionary mapping each strain/phage key to the number of padded (empty string) entries added
+      to ensure all rows in the output array are the same length.
+  - pad_starts : Dict[str, int],
+      A mapping from each strain/phage key to the index where padding begins in the output array.
+  """
+  def get_chunks(seq: str, n: int, overlap_proportion: float, rand_score: float) -> list[str]:
+        chunks = []
+        if len(seq) <= n:
+            return [seq]
+
+        step_base = n * (1 - overlap_proportion)
+        i = 0
+        while i + n <= len(seq):
+            chunks.append(seq[i:i + n])
+
+            # Add randomness to overlap
+            if 0 < overlap_proportion < 1:
+                # Random jitter in [-0.5, 0.5] * step_base * rand_score
+                jitter = int((random.random() - 0.5) * step_base * rand_score * 2)
+                step = max(1, int(step_base + jitter))
+            else:
+                step = n
+
+            i += step
+
+        # Handle any remaining tail
+        if i < len(seq) and len(seq[i:]) > n // 2:
+            chunks.append(seq[-n:])
+
+        return chunks
+
+  # Main logic
+  out_dict = {}
+  max_len = 0
+  pads_per_val = {}
+  pad_starts = {}
+
+  for key, contigs in d.items():
+      subchunks = []
+      for contig in contigs:
+          contig_chunks = get_chunks(contig, n, overlap_proportion, rand_score)
+          subchunks.extend(contig_chunks)
+      out_dict[key] = subchunks
+      if debug:
+          print(f"{key}: {len(subchunks)} chunks")
+      max_len = max(max_len, len(subchunks))
+
+  if not rt_array:
+      return out_dict, {}, {}
+
+  # Pad to uniform length
+  out_arr = []
+  for key in d:
+      row = out_dict[key]
+      pad_amt = max_len - len(row)
+      pads_per_val[key] = pad_amt
+      pad_starts[key] = len(row)
+      padded_row = row + [''] * pad_amt
+      out_arr.append(padded_row)
+
+  out_arr = np.array(out_arr, dtype=object)
+  return out_arr, pads_per_val, pad_starts
 
 def complete_n_select(d: dict, n: int, rt_array=True, debug=False) -> Tuple[np.ndarray | Dict, Dict]:
   """
