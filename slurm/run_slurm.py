@@ -38,8 +38,8 @@ def main():
     environment = "phllm0.1.3"
 
     # Configs
-    llm = "prokbert"
-    context_window = "4000"
+    llm = "megaDNA"
+    context_window = "95000"
     name_bact = "ecoli"
     test_mode = "True"
     
