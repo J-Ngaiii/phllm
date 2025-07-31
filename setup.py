@@ -44,21 +44,19 @@ with open('README.md') as f:
 
 setup(
     name="phllm",  # e.g., prokbert-pipeline
-    version="0.1.3",
+    version="0.1.4",
     packages=find_packages(),  # can also fo 'include=["phllm", "phllm.*", "evo2.evo2", "evo2.evo2.*"]'
     install_requires=[
-        "numpy<2",
+        "numpy>=2.0, <2.3",
         "pandas",
         "scikit-learn",
         "matplotlib",
         "seaborn",
-        "umap-learn",
         "torch",
         "datasets",
         "transformers",
         "biopython",
         "tqdm", 
-        "evo2"
     ],
     cmdclass={
         # 'install': CustomInstall,

@@ -14,6 +14,8 @@ This repo contains code to flow genome sequences into genomic language models (g
     - installing core packages first: `conda install numpy pandas scikit-learn matplotlib seaborn pyarrow -c conda-forge` then running `pip install -r requirements.txt`
     - installing pyarrow in parricular via conda might be helpful if you're running this on your local machine because Apple Silicon (M1/M2/M3 Macs) runs into issues trying to build pyarrow via pip
     - ensure than numpy has a version older than 2.0 (ie numpy<2.0), this many conflict with spacy which uses thinc and blis, modules that require numpy >=2.0
+	- numba needs numpy<2.3
+	- megaDNA needs numpy>2.0
 
 # Setup (Enviornment - Yes Evo2)
 Assuming you've already followed the instructions above and instantiated an environment that can run this repo without evo2 here's what to do next with that enviornment. 
@@ -57,3 +59,4 @@ pip install .
 # Build History
 - phllm-0.1.0: first working version that included initial workloop for flowing .fna files into ProkBERT and extracting the embeddings
 - phllm-0.1.2: version with working test mode for ProkBERT and initial architecture for Evo2
+- phllm-0.1.4: depricating to python 3.11.8 and megaDNA

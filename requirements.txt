@@ -1,12 +1,11 @@
 # Data Science Libraries
-numpy<2
+numpy>=2.0, <2.1
 pandas
 scikit-learn
 
 # Visualization Libraries
 matplotlib
 seaborn
-umap-learn
 
 # Deep Learning Libraries
 torch
