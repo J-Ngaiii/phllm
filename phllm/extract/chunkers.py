@@ -398,7 +398,123 @@ def extract_embeddings_megadna(
         traceback.print_exc()
         return None
 
+import numpy as np
+import torch
+from datasets import Dataset
+from transformers import Trainer, TrainingArguments
 
+def extract_embeddings_glm2(
+    arr: list[list[str]],
+    n: int,
+    tokenizer: callable,
+    model: callable,
+    test_mode=False, 
+    test_count=3,
+    device=None,
+):
+    """
+    Extract embeddings from a nested list of genomic sequences using gLM2 model/tokenizer.
+
+    Handles genomic strand tokens <+> and <-> and enforces uppercase for CDS (protein) 
+    and lowercase for IGS (nucleotide) sequences.
+
+    Parameters:
+    - arr: list of lists of strings (B x d nested list)
+    - n: max token length for padding/truncation
+    - tokenizer: Huggingface tokenizer callable
+    - model: Huggingface model callable
+    - test_mode: if True, process only `test_count` subdivisions per observation
+    - test_count: number of subdivisions to process if test_mode=True
+    - device: torch device (optional). If None, use CUDA if available.
+
+    Returns:
+    - numpy array of shape (B, d, E), where E is embedding size after mean pooling
+    """
+    arr = np.array(arr)  # ensure numpy array for slicing convenience
+    B, d = arr.shape
+    if test_mode:
+        d = min(d, test_count)
+
+    device = device or (torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+    model.to(device)
+    print(f"[extract_embeddings_glm2] Model on device: {next(model.parameters()).device}")
+
+    def preprocess_sequence(seq: str) -> str:
+        if seq.startswith('<+>') or seq.startswith('<->'):
+            strand_token = seq[:3]
+            content = seq[3:]
+            # Heuristic: if content only contains a,c,g,t (case insensitive) → nucleotide (lowercase)
+            # else → protein CDS (uppercase)
+            if all(c in 'acgtACGT' for c in content):
+                content = content.lower()
+            else:
+                content = content.upper()
+            return strand_token + content
+        else:
+            # If no strand token, return as-is or apply default rule here
+            return seq
+
+    embeddings = []
+
+    def extract(index):
+        curr_seqs = arr[:, index]
+        assert all(isinstance(seq, str) for seq in curr_seqs), f"Non-string found in input at index {index}"
+
+        # Preprocess all sequences in this subdivision
+        processed_seqs = [preprocess_sequence(s) for s in curr_seqs]
+
+        ds = Dataset.from_dict({"sequences": processed_seqs})
+
+        def tokenize_func(examples):
+            return tokenizer(
+                examples["sequences"],
+                padding='max_length',
+                truncation=True,
+                max_length=n,
+                return_tensors="pt",
+            )
+        
+        tokenized = ds.map(tokenize_func, batched=True, batch_size=32, remove_columns=["sequences"])
+
+        training_args = TrainingArguments(
+            output_dir="./temp_out",
+            per_device_eval_batch_size=16,
+            remove_unused_columns=True,
+            logging_dir="./temp_logs",
+            report_to="none",
+        )
+
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+        )
+
+        Y_hat = trainer.predict(tokenized)
+        last_hidden_states = Y_hat.predictions
+
+        if last_hidden_states is None:
+            raise RuntimeError(f"No output from model on subdivision {index}")
+
+        # Mean pooling across tokens (axis=1)
+        pooled = last_hidden_states.mean(axis=1)
+        return pooled
+
+    try:
+        for i in range(d):
+            emb = extract(i)  # shape (B, E)
+            embeddings.append(emb)
+            print(f"[extract_embeddings_glm2] Extracted embeddings for subdivision {i+1}/{d}")
+    except Exception as e:
+        import traceback
+        print("[FATAL ERROR] Embedding extraction failed:")
+        traceback.print_exc()
+        return None
+
+    out = np.stack(embeddings, axis=1)  # shape (B, d, E)
+    print(f"[extract_embeddings_glm2] Completed. Output shape: {out.shape}")
+    return out
+
+   
 def extract_embeddings_evo2(
     arr: list[list],
     n: int,

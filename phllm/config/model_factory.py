@@ -1,7 +1,8 @@
 from phllm.models.ProkBERT import is_ProkBERT_available, get_ProkBERT
 from phllm.models.Evo2 import is_Evo2_available, get_Evo2
 from phllm.models.megaDNA import is_megaDNA_available, get_megaDNA
-from phllm.extract.chunkers import extract_embeddings_prokbert, extract_embeddings_evo2, extract_embeddings_megadna
+from phllm.models.gLM2 import is_gLM2_available, get_gLM2
+from phllm.extract.chunkers import extract_embeddings_prokbert, extract_embeddings_evo2, extract_embeddings_megadna, extract_embeddings_glm2
 from typing import Callable
 
 MODEL_CONFIG = {
@@ -19,7 +20,12 @@ MODEL_CONFIG = {
         'operational_status': is_megaDNA_available,
         'getter': get_megaDNA,
         'extractor': extract_embeddings_megadna
-    }
+    }, 
+    'glm2': {
+        'operational_status': is_gLM2_available,
+        'getter': get_gLM2,
+        'extractor': extract_embeddings_glm2
+    }, 
 }
 
 def check_status(llm='prokbert'):

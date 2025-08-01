@@ -5,7 +5,7 @@ import os
 
 from phllm.utils.helpers import rt_dicts, save_to_dir
 from phllm.config.model_factory import get_model, get_embedding_extractor, check_status
-from phllm.extract.chunkers import complete_n_select
+from phllm.extract.chunkers import complete_n_select, altered_n_select
 
 def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria = 'ecoli', early_exit = False, test_mode=False, test_count=3):  
     """
@@ -55,8 +55,8 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     # Chunking and Extracting Embeddings
     print("Dividing data into chunks...")
     print("\n")
-    estrain_n_select, estrain_pads, estrain_pad_indices = complete_n_select(ecoli_strains, context)
-    ephage_n_select, ephage_pads, ephage_pad_indices = complete_n_select(ecoli_phages, context)
+    estrain_n_select, estrain_pads, estrain_pad_indices = altered_n_select(ecoli_strains, context)
+    ephage_n_select, ephage_pads, ephage_pad_indices = altered_n_select(ecoli_phages, context)
 
     print("Running embedding model...")
     print("\n")

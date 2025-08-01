@@ -35,11 +35,11 @@ def main():
     
     # Script name and Environment
     script_name = "embed.py"
-    environment = "phllm0.1.3"
+    environment = "phllm0.1.4"
 
     # Configs
-    llm = "megaDNA"
-    context_window = "95000"
+    llm = "ProkBERT"
+    context_window = "4000"
     name_bact = "ecoli"
     test_mode = "True"
     
