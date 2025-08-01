@@ -2,6 +2,7 @@ from phllm.models.ProkBERT import is_ProkBERT_available, get_ProkBERT
 from phllm.models.Evo2 import is_Evo2_available, get_Evo2
 from phllm.models.megaDNA import is_megaDNA_available, get_megaDNA
 from phllm.models.gLM2 import is_gLM2_available, get_gLM2
+from phllm.models.Gaia import is_Gaia_available, get_Gaia
 from phllm.extract.chunkers import extract_embeddings_prokbert, extract_embeddings_evo2, extract_embeddings_megadna, extract_embeddings_glm2
 from typing import Callable
 
@@ -26,6 +27,11 @@ MODEL_CONFIG = {
         'getter': get_gLM2,
         'extractor': extract_embeddings_glm2
     }, 
+    'gaia' : {
+        'operational_status': is_Gaia_available,
+        'getter': get_Gaia,
+        'extractor': extract_embeddings_glm2 # same embedding extractor should work
+    }
 }
 
 def check_status(llm='prokbert'):

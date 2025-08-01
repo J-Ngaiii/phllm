@@ -67,6 +67,9 @@ def altered_n_select(
   - pad_starts : Dict[str, int],
       A mapping from each strain/phage key to the index where padding begins in the output array.
   """
+  assert overlap_proportion >= 0 and overlap_proportion <= 1, f"alternate_n_select overlap proportion must be between 0 and 1 inclusive but currently is {overlap_proportion}"
+  assert rand_score >= 0 and rand_score <= 1, f"alternate_n_select overlap proportion must be between 0 and 1 inclusive but currently is {rand_score}"
+  
   def get_chunks(seq: str, n: int, overlap_proportion: float, rand_score: float) -> list[str]:
         chunks = []
         if len(seq) <= n:

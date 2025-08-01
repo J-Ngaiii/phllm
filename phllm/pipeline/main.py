@@ -55,8 +55,8 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     # Chunking and Extracting Embeddings
     print("Dividing data into chunks...")
     print("\n")
-    estrain_n_select, estrain_pads, estrain_pad_indices = altered_n_select(ecoli_strains, context)
-    ephage_n_select, ephage_pads, ephage_pad_indices = altered_n_select(ecoli_phages, context)
+    estrain_n_select, estrain_pads, estrain_pad_indices = altered_n_select(ecoli_strains, context, overlap_proportion=0.2)
+    ephage_n_select, ephage_pads, ephage_pad_indices = altered_n_select(ecoli_phages, context, overlap_proportion=0.2)
 
     print("Running embedding model...")
     print("\n")
