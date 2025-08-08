@@ -71,7 +71,10 @@ def altered_n_select(
   assert rand_score >= 0 and rand_score <= 1, f"alternate_n_select overlap proportion must be between 0 and 1 inclusive but currently is {rand_score}"
   
   def get_chunks(seq: str, n: int, overlap_proportion: float, rand_score: float) -> list[str]:
+        """Takes in a string and either returns it if its less than the context window `n` or breaks it into chunks"""
         chunks = []
+        if seq is None:
+            return ''
         if len(seq) <= n:
             return [seq]
 
@@ -98,19 +101,20 @@ def altered_n_select(
 
   # Main logic
   out_dict = {}
-  max_len = 0
+  max_num_subchunks = 0
   pads_per_val = {}
   pad_starts = {}
 
   for key, contigs in d.items():
+      # loop through all strings and the their correspond list of strings/contigs 
       subchunks = []
       for contig in contigs:
           contig_chunks = get_chunks(contig, n, overlap_proportion, rand_score)
-          subchunks.extend(contig_chunks)
+          subchunks.extend(contig_chunks) # extend so each elem of subchunks can be passed though the gLM
       out_dict[key] = subchunks
       if debug:
           print(f"{key}: {len(subchunks)} chunks")
-      max_len = max(max_len, len(subchunks))
+      max_num_subchunks = max(max_num_subchunks, len(subchunks))
 
   if not rt_array:
       return out_dict, {}, {}
@@ -118,12 +122,12 @@ def altered_n_select(
   # Pad to uniform length
   out_arr = []
   for key in d:
-      row = out_dict[key]
-      pad_amt = max_len - len(row)
+      row = out_dict[key] # row is a list of k subchunks, each subchunk is a string of up to length n
+      pad_amt = max_num_subchunks - len(row)
       pads_per_val[key] = pad_amt
       pad_starts[key] = len(row)
-      padded_row = row + [''] * pad_amt
-      out_arr.append(padded_row)
+      padded_row = row + [''] * pad_amt # then we add p empty string padding subchunks --> create padded row of length k + p
+      out_arr.append(padded_row) # when we pass this through the model we go (:, i, :) for all i => chunk by chunk --> then remove the outputs of passing padded subchunks in after
 
   out_arr = np.array(out_arr, dtype=object)
   return out_arr, pads_per_val, pad_starts

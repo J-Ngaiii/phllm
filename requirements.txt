@@ -17,6 +17,7 @@ Biopython
 
 # Misc
 tqdm
+pytest
 
 # ProkBERT
 git+https://github.com/nbrg-ppcu/prokbert.git
