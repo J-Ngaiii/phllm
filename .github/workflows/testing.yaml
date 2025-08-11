@@ -2,6 +2,9 @@ name: Phage-Host LLM Testing Flow
 
 on:
   workflow_dispatch:  # Allows manual triggering
+  push: 
+    branches:
+      - main
   workflow_call:  # Allows other workflows to call this setup
 
 jobs:
@@ -60,6 +63,9 @@ jobs:
 
       - name: Debug Check -> Testing Model Operation Status funtionality # this one tends to bug so I want to have sys.path info before this runs if it fails
         run: python tests/model_status_tests.py
+
+      - name: Debug Check -> Testing chunker functions # this one tends to bug so I want to have sys.path info before this runs if it fails
+        run: python tests/pytests/test_chunkers.py
 
       # - name: Debug Check -> Evo2 Check # this one tends to bug so I want to have sys.path info before this runs if it fails
       #   run: python tests/test_evo2.py

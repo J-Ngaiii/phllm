@@ -34,9 +34,9 @@ case_three = { # testing subchunking: no overlap with context window 5
     'strain2': ['AA', 'B', 'C'*15]
 }
 answer_three = np.array([
-    ['AAAAA', 'B'*5, 'B'*5, 'CCCC'],
+    ['AAAAA', 'B'*5, 'B'*5, 'CCCC', ''],
     ['AA', 'B'] + ['C'*5 for i in range(3)]
-], dtype=object)
+])
 
 case_four = { # testing padding
     'strain1': ['AAAAA', 'B'*3, 'CCCC'], 
@@ -44,10 +44,10 @@ case_four = { # testing padding
     'strain3': ['AA', 'B', 'C'*5, 'D'*5, 'E'*5, 'F'*3]
 }
 answer_four = np.array([
-    ['AAAAA', 'B'*3, 'CCCC'],
-    ['AA', 'B', 'C'*4, 'D'*2],
+    ['AAAAA', 'B'*3, 'CCCC', '', '', ''],
+    ['AA', 'B', 'C'*4, 'D'*2, '', ''],
     ['AA', 'B', 'C'*5, 'D'*5, 'E'*5, 'F'*3]
-], dtype=object)
+])
 
 case_five = { # testing padding and subchunking: no overlap with context window 5
     'strain1': ['AAAAA', 'B'*30, 'CCCC'], 
@@ -55,14 +55,14 @@ case_five = { # testing padding and subchunking: no overlap with context window 
     'strain3': ['AA', 'B', 'C'*50, 'D'*35, 'E'*15, 'F'*35]
 }
 answer_five = np.array([
-    ['AAAAA'] + ['B'*5 for i in range(6)] + ['CCCC'],
-    ['AA', 'B'] + ['C'*5 for i in range(8)] + ['D'*5 for i in range(4)],
+    ['AAAAA'] + ['B'*5 for i in range(6)] + ['CCCC'] + ['' for i in range(21)],
+    ['AA', 'B'] + ['C'*5 for i in range(8)] + ['D'*5 for i in range(4)] + [''for i in range (15)],
     ['AA', 'B'] 
     + ['C'*5 for _ in range(10)] 
     + ['D'*5 for _ in range(7)] 
     + ['E'*5 for _ in range(3)] 
     + ['F'*5 for _ in range(7)]
-], dtype=object)
+])
 
 CASES = {
     1: {
@@ -117,4 +117,6 @@ def test_altered_n_select(case_name, case):
 # Run tests
 if __name__ == "__main__":
     for case_name, case in CASES.items():
+        print(f"Running case {case_name}...")
         test_altered_n_select(case_name, case)
+        print(f"Case {case_name} passed")

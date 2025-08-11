@@ -1,5 +1,5 @@
-from phllm.config import check_status
+from phllm.config import check_status, get_config
 
-print(f"Status of 'ProkBERT': {check_status('prokbert')}")
-print(f"Status of 'Evo2': {check_status('evo2')}")
+for model_name in get_config().keys():
+    print(f"Status of '{model_name}': {check_status(model_name)}")
 print(f"Model status check complete!")

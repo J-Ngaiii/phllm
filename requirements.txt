@@ -25,4 +25,7 @@ git+https://github.com/nbrg-ppcu/prokbert.git
 # Evo-2: not pip installable
 # evo2
 
+#gLM2
+einops
+
 # Genome Ocean

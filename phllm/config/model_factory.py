@@ -63,3 +63,6 @@ def get_embedding_extractor(llm='prokbert') -> Callable:
             return MODEL_CONFIG.get(llm).get('extractor')
     except ValueError as e:
         raise e
+
+def get_config():
+    return MODEL_CONFIG

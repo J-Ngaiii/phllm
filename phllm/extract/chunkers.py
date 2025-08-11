@@ -74,7 +74,7 @@ def altered_n_select(
         """Takes in a string and either returns it if its less than the context window `n` or breaks it into chunks"""
         chunks = []
         if seq is None:
-            return ''
+            return ['']
         if len(seq) <= n:
             return [seq]
 
