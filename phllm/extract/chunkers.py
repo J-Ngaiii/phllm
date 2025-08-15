@@ -269,10 +269,7 @@ def extract_embeddings_prokbert(
     ds = Dataset.from_dict({"base_pairs": curr})
 
     def tokenize_func(examples, max_length=n):
-        # batch = examples["base_pairs"]
-        # if isinstance(batch[0], list):
-        #     batch = [item for sublist in batch for item in sublist]
-
+        true_max_len = min(n, tokenizer.model_max_length, model.config.max_position_embeddings)
         return tokenizer(
             examples["base_pairs"],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
             padding=True,
