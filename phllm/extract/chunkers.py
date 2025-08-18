@@ -243,6 +243,7 @@ def extract_embeddings_prokbert(
     arr: list[list],
     n: int,
     tokenizer: callable,
+    tokenizer_config: dict, 
     model: callable,
     hugface_out_path: str = './experiments',
     hugface_log_path: str = "./experiment_logs", 
@@ -268,16 +269,24 @@ def extract_embeddings_prokbert(
     # THIS PART IS SPECIFIC TO ProkBERT
     ds = Dataset.from_dict({"base_pairs": curr})
 
-    true_max_len = min(n, tokenizer.model_max_length, model.config.max_position_embeddings)
-    if test_mode: print(f"Tokenizer max context length: {true_max_len}")
+    tokenizer_kwargs = {
+            "padding": "max_length",
+            "truncation": True,
+            "max_length": min(
+                tokenizer_config.get("max_length", n),
+                tokenizer.model_max_length,
+                getattr(model.config, "max_position_embeddings", n)
+            ),
+            "return_tensors": "pt"
+        }
+    # Allow overrides from tokenizer_config
+    tokenizer_kwargs.update(tokenizer_config)
+
+    if test_mode:
+        print(f"Tokenizer kwargs for chunk {i}: {tokenizer_kwargs}")
+
     def tokenize_func(examples):
-        return tokenizer(
-            examples["base_pairs"],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
-            padding=True,
-            truncation=True,
-            max_length=true_max_len,
-            return_tensors="pt"
-        )
+        return tokenizer(examples["base_pairs"], **tokenizer_kwargs)
     
     num_gpus = torch.cuda.device_count()
     num_proc = max(1, num_gpus)  # Fallback to 1 if no GPU

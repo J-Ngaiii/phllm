@@ -48,6 +48,8 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     check_status(llm=llm)
     tokenizer = get_model(llm=llm, rv='tokenizer')
     print(f"Loaded tokenizer for '{llm}': {tokenizer}")
+    tokenizer_config = get_model(llm=llm, rv='tokenizer config')
+    print(f"Loaded tokenizer configurations for '{llm}': {tokenizer_config}")
     model = get_model(llm=llm, rv='model')
     print(f"Loaded model for '{llm}': {model}")
 
@@ -64,11 +66,23 @@ def workflow(llm, context, strain_in, strain_out, phage_in, phage_out, bacteria 
     print(f"Dimensions of chunked strain array: {estrain_n_select.shape}")
     embedding_extractor = get_embedding_extractor(llm=llm)
     print(f"Using extractor: {embedding_extractor.__name__}")
-    estrain_embed = embedding_extractor(estrain_n_select, context, tokenizer, model, test_mode=test_mode)
+    estrain_embed = embedding_extractor(
+        arr=estrain_n_select, 
+        n=context, 
+        tokenizer=tokenizer, 
+        tokenizer_config=tokenizer_config, 
+        model=model, 
+        test_mode=test_mode)
     print(f"Strain embeddings for {bacteria} extracted, dimensions: {estrain_embed.shape}")
 
     print(f"Dimensions of chunked phage array: {ephage_n_select.shape}")
-    ephage_embed = embedding_extractor(ephage_n_select, context, tokenizer, model, test_mode=test_mode)
+    ephage_embed = embedding_extractor(
+        arr=ephage_n_select, 
+        n=context, 
+        tokenizer=tokenizer, 
+        tokenizer_config=tokenizer_config, 
+        model=model, 
+        test_mode=test_mode)
     print(f"Phage embeddings for {bacteria} extracted, dimensions: {ephage_embed.shape}")
 
     # Saving Embeddings to Directory
