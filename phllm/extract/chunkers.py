@@ -269,58 +269,22 @@ def extract_embeddings_prokbert(
     # THIS PART IS SPECIFIC TO ProkBERT
     ds = Dataset.from_dict({"base_pairs": curr})
 
-    tokenizer_kwargs = {
-            "padding": "max_length",
-            "truncation": True,
-            "max_length": min(
-                tokenizer_config.get("max_length", n),
-                tokenizer.model_max_length,
-                getattr(model.config, "max_position_embeddings", n)
-            ),
-            "return_tensors": "pt"
-        }
-    # Allow overrides from tokenizer_config
-    tokenizer_kwargs.update(tokenizer_config)
-
-    if test_mode:
-        print(f"Tokenizer kwargs for chunk {i}: {tokenizer_kwargs}")
-
-    def tokenize_func(examples):
-        return tokenizer(examples["base_pairs"], **tokenizer_kwargs)
+    def tokenize_func(examples, max_length=n):
+        true_max_len = min(n, tokenizer.model_max_length, model.config.max_position_embeddings)
+        return tokenizer(
+            examples["base_pairs"],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
+            padding=True,
+            truncation=True,
+            max_length=max_length,
+            return_tensors="pt"# Set the maximum sequence length if needed
+        )
     
     num_gpus = torch.cuda.device_count()
     num_proc = max(1, num_gpus)  # Fallback to 1 if no GPU
-    if test_mode: print(f"extract_embeddings_prokbert tokenizer map using {num_proc} cores")
+    if test_mode:
+       print(f"extract_embeddings_prokbert tokenizer map using {num_proc} cores")
 
-    bad_indices_global = []
-    try:
-        tokenized = ds.map(tokenize_func, batched=True, num_proc=num_proc)
-    except Exception as e:
-        print(f"[WARN] Tokenization failed for chunk {i}, retrying row-by-row to find bad entries...")
-        bad_indices = []
-        good_rows = []
-
-        for row_idx, seq in enumerate(curr):
-            try:
-                _ = tokenizer(
-                    seq,
-                    padding=True,
-                    truncation=True,
-                    max_length=true_max_len,
-                    return_tensors="pt"
-                )
-                good_rows.append(seq)
-            except Exception as e:
-                bad_indices.append(row_idx)
-
-        bad_indices_global.extend([(i, idx) for idx in bad_indices])
-        print(f"[ERROR] Chunk {i} bad row indices: {bad_indices}")
-
-        raise e
-        # # Keep only cleaned rows
-        # cleaned_rows = [seq for idx, seq in enumerate(curr) if idx not in bad_indices]
-        # ds = Dataset.from_dict({"base_pairs": cleaned_rows})
-        # tokenized = ds.map(tokenize_func, batched=True, num_proc=1)  # safer single proc
+    tokenized = ds.map(tokenize_func, batched=True, num_proc=num_proc)
 
     training_args = TrainingArguments(
     output_dir=hugface_out_path,  # Output directory
