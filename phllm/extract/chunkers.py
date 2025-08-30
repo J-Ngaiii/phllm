@@ -10,7 +10,6 @@ def altered_n_select(
     d: dict,
     n: int,
     overlap_proportion: float,
-    rand_score: float = 0.5,
     rt_array: bool = True,
     debug: bool = False
 ) -> Tuple[np.ndarray | Dict[str, list[str]], Dict[str, int], Dict[str, int]]:
@@ -68,9 +67,8 @@ def altered_n_select(
       A mapping from each strain/phage key to the index where padding begins in the output array.
   """
   assert overlap_proportion >= 0 and overlap_proportion <= 1, f"alternate_n_select overlap proportion must be between 0 and 1 inclusive but currently is {overlap_proportion}"
-  assert rand_score >= 0 and rand_score <= 1, f"alternate_n_select overlap proportion must be between 0 and 1 inclusive but currently is {rand_score}"
   
-  def get_chunks(seq: str, n: int, overlap_proportion: float, rand_score: float) -> list[str]:
+  def get_chunks(seq: str, n: int, overlap_proportion: float) -> list[str]:
         """Takes in a string and either returns it if its less than the context window `n` or breaks it into chunks"""
         chunks = []
         if seq is None:
@@ -85,9 +83,8 @@ def altered_n_select(
 
             # Add randomness to overlap
             if 0 < overlap_proportion < 1:
-                # Random jitter in [-0.5, 0.5] * step_base * rand_score
-                jitter = int((random.random() - 0.5) * step_base * rand_score * 2)
-                step = max(1, int(step_base + jitter))
+                # Random jitter in [-0.5, 0.5] * step_base
+                step = max(1, int(step_base))
             else:
                 step = n
 
@@ -269,12 +266,12 @@ def extract_embeddings_prokbert(
     # THIS PART IS SPECIFIC TO ProkBERT
     ds = Dataset.from_dict({"base_pairs": curr})
 
-    def tokenize_func(examples, max_length=n):
+    def tokenize_func(examples, max_length=n): # EUREKA
         true_max_len = min(n, tokenizer.model_max_length, model.config.max_position_embeddings)
-        return tokenizer(
+        return tokenizer.batch_encode_plus(
             examples["base_pairs"],  # input a list of multiple strings you want to tokenize from a huggingface Dataset object
             padding=True,
-            truncation=True,
+            add_special_tokens=True, 
             max_length=max_length,
             return_tensors="pt"# Set the maximum sequence length if needed
         )

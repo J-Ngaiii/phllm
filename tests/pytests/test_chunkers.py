@@ -64,6 +64,21 @@ answer_five = np.array([
     + ['F'*5 for _ in range(7)]
 ])
 
+case_six= { # testing overlap proportion statistic
+    'strain1': ['AAAAA', 'B'*30, 'CCCC'], 
+    'strain2': ['AA', 'B', 'C'*40, 'D'*20], 
+    'strain3': ['AA', 'B', 'C'*50, 'D'*35, 'E'*15, 'F'*35]
+}
+answer_six = np.array([
+    ['AAAAA'] + ['B'*5 for i in range(6)] + ['CCCC'] + ['' for i in range(21)],
+    ['AA', 'B'] + ['C'*5 for i in range(8)] + ['D'*5 for i in range(4)] + [''for i in range (15)],
+    ['AA', 'B'] 
+    + ['C'*5 for _ in range(10)] 
+    + ['D'*5 for _ in range(7)] 
+    + ['E'*5 for _ in range(3)] 
+    + ['F'*5 for _ in range(7)]
+])
+
 CASES = {
     1: {
         'PROB': case_one,
